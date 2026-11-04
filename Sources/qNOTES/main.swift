@@ -1,4 +1,5 @@
 import AppKit
+import WidgetKit
 import qNOTESCore
 
 let arguments = CommandLine.arguments
@@ -17,6 +18,18 @@ if let flag = arguments.firstIndex(of: "--import"), arguments.indices.contains(f
             print("Import impossible : \(error)")
             exit(1)
         }
+    }
+}
+
+/// `--push-widget` : met à jour le widget à partir des vraies notes, sans fenêtre (terminal, essais).
+if arguments.contains("--push-widget") {
+    MainActor.assumeIsolated {
+        let store = NoteStore(directory: (Prefs.sync ? NoteStore.iCloudDirectory : nil) ?? NoteStore.localDirectory)
+        let snapshot = WidgetShare.snapshot(from: store.notes)
+        WidgetShare.write(snapshot)
+        WidgetCenter.shared.reloadAllTimelines()
+        print("Widget : \(snapshot.notes.count) notes envoyées vers \(WidgetShare.directory.path)")
+        exit(0)
     }
 }
 

@@ -173,3 +173,22 @@ import Testing
         #expect(try Backups.create(notes: [], in: dir) == nil)
     }
 }
+
+@Suite struct WidgetShareTests {
+    @Test func snapshotCleansLinesAndRoundTrips() throws {
+        let notes = [Note(text: "# Courses\n- [x] Pain\n**Lait** entier\n────\n"), Note(text: "   "), Note(text: "Idée", pinned: true)]
+        let snap = WidgetShare.snapshot(from: notes)
+        #expect(snap.notes.count == 2)                       // la note vide est écartée
+        #expect(snap.notes[0].title == "Courses" && snap.notes[0].lines == ["Pain", "Lait entier"])
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("qn-w-" + UUID().uuidString)
+        #expect(WidgetShare.write(snap, to: dir))
+        #expect(!WidgetShare.write(snap, to: dir))           // inchangé : pas de réécriture
+        #expect(WidgetShare.read(from: dir)?.notes == snap.notes)
+    }
+
+    @Test func deepLinks() {
+        let id = UUID()
+        #expect(WidgetShare.noteID(from: WidgetShare.url(for: id)) == id)
+        #expect(WidgetShare.noteID(from: URL(string: "https://x/note/\(id)")!) == nil)
+    }
+}

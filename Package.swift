@@ -7,6 +7,9 @@ let package = Package(
     targets: [
         .target(name: "qNOTESCore", swiftSettings: [.swiftLanguageMode(.v5)]),
         .executableTarget(name: "qNOTES", dependencies: ["qNOTESCore"], swiftSettings: [.swiftLanguageMode(.v5)]),
+        .executableTarget(name: "qNOTESWidget", dependencies: ["qNOTESCore"], swiftSettings: [.swiftLanguageMode(.v5)],
+                          linkerSettings: [.unsafeFlags(["-Xlinker", "-e", "-Xlinker", "_NSExtensionMain"]),
+                                           .linkedFramework("WidgetKit"), .linkedFramework("SwiftUI")]),
         .testTarget(name: "qNOTESTests", dependencies: ["qNOTESCore"]),
     ]
 )

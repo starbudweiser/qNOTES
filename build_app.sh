@@ -69,7 +69,38 @@ cat > "$APP/Contents/Info.plist" <<PLIST
     <key>CFBundleLocalizations</key><array><string>fr</string><string>en</string><string>es</string><string>it</string></array>
     <key>LSMinimumSystemVersion</key><string>14.0</string>
     <key>NSHighResolutionCapable</key><true/>
+    <key>CFBundleURLTypes</key><array><dict>
+        <key>CFBundleURLName</key><string>fr.stephan.qnotes</string>
+        <key>CFBundleURLSchemes</key><array><string>qnotes</string></array>
+    </dict></array>
     <key>NSHumanReadableCopyright</key><string>© 2026 Starbudweiser</string>
+</dict>
+</plist>
+PLIST
+
+# Widget : extension WidgetKit (bac à sable, groupe d'applications partagé avec l'appli).
+swift build -c release --product qNOTESWidget
+WBIN="$(swift build -c release --show-bin-path)/qNOTESWidget"
+APPEX="$APP/Contents/PlugIns/qNOTESWidget.appex"
+mkdir -p "$APPEX/Contents/MacOS" "$APPEX/Contents/Resources"
+cp "$WBIN" "$APPEX/Contents/MacOS/qNOTESWidget"
+cp -R Resources/widget/*.lproj "$APPEX/Contents/Resources/"
+cat > "$APPEX/Contents/Info.plist" <<PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleName</key><string>qNOTES</string>
+    <key>CFBundleDisplayName</key><string>qNOTES</string>
+    <key>CFBundleIdentifier</key><string>fr.stephan.qnotes.widget</string>
+    <key>CFBundleExecutable</key><string>qNOTESWidget</string>
+    <key>CFBundlePackageType</key><string>XPC!</string>
+    <key>CFBundleShortVersionString</key><string>$VERSION</string>
+    <key>CFBundleVersion</key><string>$BUILD</string>
+    <key>CFBundleDevelopmentRegion</key><string>en</string>
+    <key>CFBundleLocalizations</key><array><string>fr</string><string>en</string><string>es</string><string>it</string></array>
+    <key>LSMinimumSystemVersion</key><string>14.0</string>
+    <key>NSExtension</key><dict><key>NSExtensionPointIdentifier</key><string>com.apple.widgetkit-extension</string></dict>
 </dict>
 </plist>
 PLIST
@@ -80,10 +111,26 @@ else
     codesign --force --deep --sign - "$APP"   # signature ad hoc hors de ma machine
 fi
 
+# Signature finale avec droits : l'extension (bac à sable + groupe) puis l'appli (groupe), même identité que sign_app.sh.
+# sign_app.sh signe tout en profondeur sans droits ; les droits ne s'appliquent qu'à l'exécutable que l'on signe, d'où ce second passage.
+KC="$HOME/Library/Keychains/skyrim-signing.keychain-db"
+if [ -f "$KC" ] && [ -f "$HOME/.skyrim-signing/keychain.pw" ]; then
+    security unlock-keychain -p "$(cat "$HOME/.skyrim-signing/keychain.pw")" "$KC"
+    HASH="$(security find-identity -v -p codesigning "$KC" | { grep 'Developer ID Application' || true; } | awk '{print $2}' | head -1)"
+    SIGN=(codesign --force --keychain "$KC" --sign "$HASH")
+else
+    SIGN=(codesign --force --sign -)   # hors de ma machine : signature ad hoc
+fi
+"${SIGN[@]}" --entitlements assets/widget.entitlements --identifier fr.stephan.qnotes.widget "$APPEX"
+"${SIGN[@]}" --entitlements assets/app.entitlements --identifier fr.stephan.qnotes "$APP"
+codesign --verify --deep --strict "$APP"
+
 if [ "${NO_INSTALL:-0}" != 1 ]; then
     mkdir -p "$DEST"
     osascript -e 'tell application id "fr.stephan.qnotes" to quit' 2>/dev/null || true
     rm -rf "$DEST/$APP"
     cp -R "$APP" "$DEST/"
+    /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f "$DEST/$APP" >/dev/null 2>&1 || true
+    pluginkit -a "$DEST/$APP/Contents/PlugIns/qNOTESWidget.appex" 2>/dev/null || true
     echo "Installé : $DEST/$APP"
 fi

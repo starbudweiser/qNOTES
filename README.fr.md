@@ -15,6 +15,7 @@ Bloc-notes Markdown personnel pour macOS, inspiré de Tot (The Iconfactory), san
 - **Compteur de mots et de caractères**, pour la note ou la sélection.
 - **Synchro iCloud Drive** : les notes sont dans `iCloud Drive/qNOTES`, un fichier par note, la modification la plus récente gagne.
 - **Sauvegardes automatiques**, avec restauration (les notes actuelles sont d'abord sauvegardées).
+- **Widget** (petit, moyen, grand) : vos notes épinglées ou les plus récentes sur le bureau ; un clic ouvre la note.
 - **Mise à jour automatique** depuis les releases GitHub (signature et notarisation vérifiées).
 - Quatre langues (français, anglais, espagnol, italien), d'après la langue du système.
 

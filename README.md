@@ -17,6 +17,7 @@ qNOTES is a personal Markdown notes app for macOS, inspired by Tot (The Iconfact
 - **Word and character counter**, for the whole note or the selection.
 - **iCloud Drive sync**: notes live in `iCloud Drive/qNOTES`, one file per note, newest edit wins.
 - **Automatic backups**, with restore (your current notes are backed up first).
+- **Widget** (small, medium, large): your pinned or latest notes on the desktop; a click opens the note.
 - **Automatic updates** from GitHub releases (signature and notarization checked).
 - Four languages (French, English, Spanish, Italian), picked from the system language.
 

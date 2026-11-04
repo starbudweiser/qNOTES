@@ -10,6 +10,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     let backups: BackupScheduler
     let updates = UpdateEngine.shared
     private var window: NSWindow?
+    private var widgetBridge: WidgetBridge?
     private var settingsWindow: NSWindow?
 
     override init() {
@@ -25,6 +26,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         buildMenu()
         store.startWatching()
         backups.start()
+        // Essais (dossier de données redirigé) : le widget réel ne reçoit jamais de notes d'essai.
+        if ProcessInfo.processInfo.environment["QNOTES_DATA_DIR"] == nil { widgetBridge = WidgetBridge(store: store) }
         updates.configure(repo: "qNOTES", lang: { Bundle.main.preferredLocalizations.first ?? "en" })
         updates.autoCheck = { Prefs.defaults.object(forKey: Prefs.autoUpdate) as? Bool ?? true }
         updates.start()
@@ -37,6 +40,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         guard !shownOnActivation else { return }
         shownOnActivation = true
         if window == nil, !NSApp.windows.contains(where: { $0.isVisible }) { showMainWindow() }
+    }
+
+    /// Lien `qnotes://note/<id>` (clic sur le widget) : ouvre la note.
+    func application(_ application: NSApplication, open urls: [URL]) {
+        for url in urls {
+            guard let id = WidgetShare.noteID(from: url), store.note(id) != nil else { continue }
+            shownOnActivation = true
+            showMainWindow()
+            model.query = ""
+            model.selectedID = id
+        }
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {

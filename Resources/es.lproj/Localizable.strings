@@ -124,3 +124,8 @@
 "import.done" = "%ld notas importadas, %ld ya presentes";
 "import.empty" = "No hay notas que importar en estos archivos.";
 "import.button" = "Importar desde Tot";
+/* Mode d'affichage */
+"mode.layout" = "Diseño";
+"mode.markdown" = "Etiquetas";
+"mode.help" = "Diseño: las etiquetas se ocultan salvo en la línea actual. Etiquetas: todo el Markdown permanece visible.";
+"mode.toggle" = "Cambiar diseño / etiquetas";

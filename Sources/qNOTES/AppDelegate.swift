@@ -56,7 +56,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 980, height: 660),
                          styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
         w.title = "qNOTES"
-        w.minSize = NSSize(width: 700, height: 440)
+        w.minSize = NSSize(width: 860, height: 460)
         w.isReleasedWhenClosed = false
         w.delegate = self
         w.contentView = NSHostingView(rootView: ContentView(model: model, store: store))
@@ -197,9 +197,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             if action == .link || action == .quote { items.append(.separator()) }
         }
         items.append(.separator())
+        items.append(item(L("mode.toggle"), #selector(toggleLayout), "m", [.command, .shift], target: self))
         let help = item(L("md.help.title"), #selector(showMarkdownHelp), "/", [.command, .shift], target: self)
         items.append(help)
         return items
+    }
+
+    @objc func toggleLayout() {
+        Prefs.defaults.set(!Prefs.layout, forKey: Prefs.layoutMode)
     }
 
     @objc func showMarkdownHelp() {

@@ -124,3 +124,8 @@
 "import.done" = "%ld notes importées, %ld déjà présentes";
 "import.empty" = "Aucune note à importer dans ces fichiers.";
 "import.button" = "Importer depuis Tot";
+/* Mode d'affichage */
+"mode.layout" = "Mise en page";
+"mode.markdown" = "Balises";
+"mode.help" = "Mise en page : les balises sont masquées hors de la ligne en cours. Balises : tout le Markdown reste visible.";
+"mode.toggle" = "Basculer mise en page / balises";

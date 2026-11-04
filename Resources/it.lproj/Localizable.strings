@@ -124,3 +124,8 @@
 "import.done" = "%ld note importate, %ld già presenti";
 "import.empty" = "Nessuna nota da importare in questi file.";
 "import.button" = "Importa da Tot";
+/* Mode d'affichage */
+"mode.layout" = "Impaginazione";
+"mode.markdown" = "Tag";
+"mode.help" = "Impaginazione: i tag sono nascosti tranne nella riga corrente. Tag: tutto il Markdown resta visibile.";
+"mode.toggle" = "Passa da impaginazione a tag";

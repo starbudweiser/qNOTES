@@ -157,13 +157,14 @@ private struct EditorPane: View {
     @State private var selection = ""
     @AppStorage(Prefs.fontSize) private var fontSize = Prefs.defaultFontSize
     @AppStorage(Prefs.separator) private var separator = Separators.presets[0]
+    @AppStorage(Prefs.layoutMode) private var layout = true
 
     var body: some View {
         let note = store.note(noteID)
         VStack(spacing: 0) {
             FormatBar()
             Rectangle().fill(Socle.C.border).frame(height: 1)
-            NoteEditor(noteID: noteID, text: note?.text ?? "", fontSize: fontSize, separator: separator,
+            NoteEditor(noteID: noteID, text: note?.text ?? "", fontSize: fontSize, separator: separator, layout: layout,
                        onChange: { store.update(id: noteID, text: $0) },
                        onSelection: { selection = $0 })
             Rectangle().fill(Socle.C.border).frame(height: 1)
@@ -173,6 +174,8 @@ private struct EditorPane: View {
                      + L("count.words", counts.words) + " · " + L("count.chars", counts.characters))
                     .socle(Socle.T.meta).foregroundStyle(Socle.C.textSubtle)
                 Spacer()
+                SocleSegmented(options: [true, false], selection: layout, label: { $0 ? L("mode.layout") : L("mode.markdown") }) { layout = $0 }
+                    .help(L("mode.help"))
                 if let note {
                     Text(L("note.modified", note.modified.formatted(date: .abbreviated, time: .shortened)))
                         .socle(Socle.T.meta).foregroundStyle(Socle.C.textSubtle)

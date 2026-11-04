@@ -58,6 +58,8 @@ final class EditorController: ObservableObject {
     static let shared = EditorController()
     weak var textView: NoteTextView?
     @Published var helpShown = false
+    /// Mises en forme actives sous le curseur : leurs boutons sont allumés.
+    @Published var active: Set<MarkdownAction> = []
 
     func apply(_ action: MarkdownAction) {
         guard let view = textView else { return }
@@ -84,19 +86,17 @@ struct FormatBar: View {
             ForEach(groups.indices, id: \.self) { index in
                 if index > 0 { Rectangle().fill(Socle.C.border).frame(width: 1, height: 16).padding(.horizontal, Socle.M.space1) }
                 ForEach(groups[index], id: \.self) { action in
-                    FormatButton(action: action) { controller.apply(action) }
+                    FormatButton(action: action, active: controller.active.contains(action)) { controller.apply(action) }
                 }
             }
             Spacer(minLength: Socle.M.space2)
             Button { controller.helpShown.toggle() } label: {
-                HStack(spacing: 4) {
-                    Image(systemName: "questionmark.circle")
-                    Text(L("md.help.button")).socle(Socle.T.button)
-                }
+                Image(systemName: "questionmark.circle").font(.system(size: 14))
             }
             .buttonStyle(SocleButtonStyle(.tertiary, height: 28))
-            .fixedSize()
+            .frame(width: 34)
             .help(L("md.help.title"))
+            .accessibilityLabel(L("md.help.title"))
             .popover(isPresented: $controller.helpShown, arrowEdge: .bottom) { MarkdownHelp(controller: controller) }
         }
         .padding(.horizontal, Socle.M.space3).padding(.vertical, Socle.M.space1_5)
@@ -106,6 +106,7 @@ struct FormatBar: View {
 
 private struct FormatButton: View {
     let action: MarkdownAction
+    var active = false
     let perform: () -> Void
     @State private var hover = false
 
@@ -116,9 +117,9 @@ private struct FormatButton: View {
                 if let symbol = icon.symbol { Image(systemName: symbol).font(.system(size: 13)) }
                 else if let text = icon.text { Text(text).font(.system(size: 12, weight: .bold)) }
             }
-            .foregroundStyle(hover ? Socle.C.textStrong : Socle.C.textMuted)
+            .foregroundStyle(active ? Socle.C.accentText : hover ? Socle.C.textStrong : Socle.C.textMuted)
             .frame(width: 30, height: 28)
-            .background(hover ? Socle.C.control : .clear, in: RoundedRectangle(cornerRadius: Socle.M.radius))
+            .background(active ? Socle.C.controlStrong : hover ? Socle.C.control : .clear, in: RoundedRectangle(cornerRadius: Socle.M.radius))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -201,5 +202,48 @@ private struct HelpRow: View {
         }
         .buttonStyle(.plain)
         .onHover { hover = $0 }
+    }
+}
+
+// MARK: Mini-barre flottante près du texte sélectionné
+
+struct MiniToolbar: View {
+    @ObservedObject var controller: EditorController
+    private let actions: [MarkdownAction] = [.bold, .italic, .strike, .code, .link, .h2, .bullet, .quote]
+
+    var body: some View {
+        HStack(spacing: 2) {
+            ForEach(actions, id: \.self) { action in
+                MiniButton(action: action, active: controller.active.contains(action)) { controller.apply(action) }
+            }
+        }
+        .padding(3)
+        .background(Socle.C.surfaceRaised, in: RoundedRectangle(cornerRadius: Socle.M.radiusMd))
+        .overlay(RoundedRectangle(cornerRadius: Socle.M.radiusMd).stroke(Socle.C.borderStrong, lineWidth: 1))
+        .fixedSize()
+    }
+}
+
+private struct MiniButton: View {
+    let action: MarkdownAction
+    let active: Bool
+    let perform: () -> Void
+    @State private var hover = false
+
+    var body: some View {
+        Button(action: perform) {
+            let icon = MarkdownLabels.icon(action)
+            Group {
+                if let symbol = icon.symbol { Image(systemName: symbol).font(.system(size: 12)) }
+                else if let text = icon.text { Text(text).font(.system(size: 11, weight: .bold)) }
+            }
+            .foregroundStyle(active ? Socle.C.accentText : Socle.C.textStrong)
+            .frame(width: 28, height: 26)
+            .background(active ? Socle.C.controlStrong : hover ? Socle.C.control : .clear, in: RoundedRectangle(cornerRadius: Socle.M.radius))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .onHover { hover = $0 }
+        .help(MarkdownLabels.name(action) + " — " + MarkdownLabels.syntax(action))
     }
 }

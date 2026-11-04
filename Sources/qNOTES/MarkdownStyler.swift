@@ -18,7 +18,7 @@ enum MarkdownStyler {
     private static let link = try! NSRegularExpression(pattern: "\\[([^\\]\\n]+)\\]\\(([^)\\n]+)\\)")
     private static let url = try! NSRegularExpression(pattern: "https?://[^\\s<>\\)\\]]+")
 
-    static func apply(to storage: NSTextStorage, fontSize: CGFloat, separator: String) {
+    static func apply(to storage: NSTextStorage, fontSize: CGFloat, separator: String, hideMarkers: Bool = false, active: NSRange = NSRange(location: 0, length: 0)) {
         let full = NSRange(location: 0, length: storage.length)
         let base = NSFont.systemFont(ofSize: fontSize)
         let mono = NSFont.monospacedSystemFont(ofSize: fontSize * 0.92, weight: .regular)
@@ -34,7 +34,17 @@ enum MarkdownStyler {
         let string = storage.string as NSString
         var inFence = false
 
-        string.enumerateSubstrings(in: full, options: [.byParagraphs, .substringNotRequired]) { _, range, _, _ in
+        let hiddenFont = NSFont.systemFont(ofSize: 1)
+        string.enumerateSubstrings(in: full, options: [.byParagraphs, .substringNotRequired]) { _, range, enclosing, _ in
+            // Mise en page : les balises sont masquées, sauf sur la ligne où se trouve le curseur ou la sélection.
+            let loc = active.location
+            let isActive = (loc >= enclosing.location && loc < enclosing.upperBound) || (loc == storage.length && enclosing.upperBound == storage.length)
+                || NSIntersectionRange(active, enclosing).length > 0
+            let hideHere = hideMarkers && !isActive
+            func dim(_ r: NSRange) {
+                if hideHere { storage.addAttributes([.font: hiddenFont, .foregroundColor: NSColor.clear], range: r) }
+                else { storage.addAttribute(.foregroundColor, value: subtle, range: r) }
+            }
             let line = string.substring(with: range)
             let trimmed = line.trimmingCharacters(in: .whitespaces)
 
@@ -58,13 +68,13 @@ enum MarkdownStyler {
                 let scale: [CGFloat] = [1.6, 1.38, 1.2, 1.1, 1.05, 1.0]
                 let font = NSFont.systemFont(ofSize: fontSize * scale[level - 1], weight: .bold)
                 storage.addAttributes([.font: font, .foregroundColor: ns(Socle.C.textStrong)], range: range)
-                storage.addAttribute(.foregroundColor, value: subtle, range: NSRange(location: range.location, length: m.range.length))
+                dim(NSRange(location: range.location, length: m.range.length))
                 contentStart += m.range.length
             } else if let m = quote.firstMatch(in: line, range: NSRange(location: 0, length: (line as NSString).length)) {
                 let para = basePara.mutableCopy() as! NSMutableParagraphStyle
                 para.headIndent = 14; para.firstLineHeadIndent = 14
                 storage.addAttributes([.foregroundColor: muted, .paragraphStyle: para], range: range)
-                storage.addAttribute(.foregroundColor, value: subtle, range: NSRange(location: range.location, length: m.range.length))
+                dim(NSRange(location: range.location, length: m.range.length))
                 contentStart += m.range.length
             } else if let item = ListTools.parse(line) {
                 let prefix = String(line.prefix(item.markerLength))
@@ -87,20 +97,20 @@ enum MarkdownStyler {
             }
 
             inline(storage, in: NSRange(location: contentStart, length: range.location + range.length - contentStart),
-                   mono: mono, codeBG: codeBG, subtle: subtle, accent: accent)
+                   mono: mono, codeBG: codeBG, accent: accent, dim: dim)
         }
         storage.endEditing()
     }
 
-    private static func inline(_ storage: NSTextStorage, in range: NSRange, mono: NSFont, codeBG: NSColor, subtle: NSColor, accent: NSColor) {
+    private static func inline(_ storage: NSTextStorage, in range: NSRange, mono: NSFont, codeBG: NSColor, accent: NSColor, dim: (NSRange) -> Void) {
         guard range.length > 1 else { return }
         let string = storage.string
         func mark(_ re: NSRegularExpression, markerLength: (NSTextCheckingResult) -> Int, style: (NSRange) -> Void) {
             for m in re.matches(in: string, range: range) {
                 style(m.range)
                 let n = markerLength(m)
-                storage.addAttribute(.foregroundColor, value: subtle, range: NSRange(location: m.range.location, length: n))
-                storage.addAttribute(.foregroundColor, value: subtle, range: NSRange(location: m.range.upperBound - n, length: n))
+                dim(NSRange(location: m.range.location, length: n))
+                dim(NSRange(location: m.range.upperBound - n, length: n))
             }
         }
         func trait(_ t: NSFontTraitMask) -> (NSRange) -> Void {
@@ -118,8 +128,9 @@ enum MarkdownStyler {
 
         for m in link.matches(in: string, range: range) {
             let target = (string as NSString).substring(with: m.range(at: 2))
-            storage.addAttribute(.foregroundColor, value: subtle, range: m.range)
             let label = m.range(at: 1)
+            dim(NSRange(location: m.range.location, length: 1))                                    // [
+            dim(NSRange(location: label.upperBound, length: m.range.upperBound - label.upperBound)) // ](adresse)
             storage.addAttributes([.foregroundColor: accent, .underlineStyle: NSUnderlineStyle.single.rawValue], range: label)
             if let u = URL(string: target) { storage.addAttribute(.link, value: u, range: m.range) }
         }

@@ -13,6 +13,7 @@ enum Prefs {
     static let syncICloud = "syncICloud"
     static let autoUpdate = "autoUpdate"
     static let theme = "theme"
+    static let layoutMode = "layoutMode"
 
     static let defaultFontSize = 16.0
 
@@ -25,5 +26,6 @@ enum Prefs {
     static var backups: Bool { defaults.object(forKey: backupEnabled) as? Bool ?? true }
     static var keep: Int { defaults.object(forKey: backupKeep) as? Int ?? 30 }
     static var hours: Int { defaults.object(forKey: backupHours) as? Int ?? 1 }
+    static var layout: Bool { defaults.object(forKey: layoutMode) as? Bool ?? true }
     static var sync: Bool { defaults.object(forKey: syncICloud) as? Bool ?? false }
 }

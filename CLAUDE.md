@@ -13,5 +13,7 @@ compteur de mots, widgets. Swift/SwiftUI + AppKit (NSTextView), sans bac à sabl
   `QNOTES_ICLOUD_DIR` redirigent pour les essais.
 - Ne jamais comparer des chemins de fichiers dans NoteStore (liens symboliques) : comparer les noms (une perte de données est déjà arrivée).
 - Assistant Markdown : logique pure dans `qNOTESCore/MarkdownAssistant.swift` (testée), branchée par `MarkdownAssist.swift` (barre, aide, menu Format).
+- Import : `qNOTESCore/Importer.swift` (sauvegardes JSON de Tot, lues dans `~/Library/Containers/com.iconfactory.Tot/…/Backups`, `QNOTES_TOT_DIR` pour les essais ; fichiers .md/.txt) ; `qNOTES --import <fichier>` en terminal.
+- Mode Mise en page : `MarkdownStyler` masque les balises (police de 1 pt, transparente) sauf sur la ligne active ; mini-barre = sous-vue de la zone de texte (`NoteEditor.Coordinator.showMini`). `QNOTES_CAPTURE_SELECT="début,longueur"` la montre en capture.
 - Essais sans fenêtre : `qNOTES --selftest` (comportement de la zone de texte), `qNOTES --capture f.png`, `--capture-settings f.png`, `--capture-about f.png`.
 - Build et installation (dans ~/Applications/Applications Personnelles) : `./build_app.sh`. Publier : `scripts/release.sh <version>`.

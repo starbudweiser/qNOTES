@@ -8,6 +8,15 @@ enum Capture {
         let window = delegate.makeMainWindow()
         guard let view = window.contentView else { exit(1) }
         window.appearance = NSAppearance(named: .darkAqua)
+        // QNOTES_CAPTURE_SELECT="début,longueur" : sélection préalable (pour voir la mini-barre).
+        if let spec = ProcessInfo.processInfo.environment["QNOTES_CAPTURE_SELECT"]?.split(separator: ",").compactMap({ Int($0) }), spec.count == 2 {
+            view.layoutSubtreeIfNeeded()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                MainActor.assumeIsolated {
+                    view.firstDescendant(ofType: NoteTextView.self, where: { _ in true })?.setSelectedRange(NSRange(location: spec[0], length: spec[1]))
+                }
+            }
+        }
         render(view, size: NSSize(width: 980, height: 660), path)
     }
 

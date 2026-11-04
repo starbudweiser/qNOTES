@@ -124,3 +124,8 @@
 "import.done" = "%ld notes imported, %ld already there";
 "import.empty" = "No notes to import in these files.";
 "import.button" = "Import from Tot";
+/* Mode d'affichage */
+"mode.layout" = "Layout";
+"mode.markdown" = "Tags";
+"mode.help" = "Layout: tags are hidden except on the current line. Tags: all the Markdown stays visible.";
+"mode.toggle" = "Switch Layout / Tags";

@@ -94,6 +94,14 @@ final class NoteTextView: NSTextView {
         super.insertText(insertString, replacementRange: replacementRange)
     }
 
+    /// Appelé quand la souris est relâchée : la sélection est alors stable, la mini-barre peut s'afficher.
+    var onSelectionSettled: (() -> Void)?
+
+    override func mouseUp(with event: NSEvent) {
+        super.mouseUp(with: event)
+        onSelectionSettled?()
+    }
+
     /// Un clic sur « [ ] » ou « [x] » coche ou décoche la tâche, sans déplacer le curseur.
     override func mouseDown(with event: NSEvent) {
         let ns = string as NSString
@@ -121,6 +129,7 @@ struct NoteEditor: NSViewRepresentable {
     let text: String
     let fontSize: Double
     let separator: String
+    let layout: Bool
     let onChange: (String) -> Void
     let onSelection: (String) -> Void
 
@@ -172,6 +181,9 @@ struct NoteEditor: NSViewRepresentable {
         private var loadedID: UUID?
         private var styledSize: Double = 0
         private var styledSeparator = ""
+        private var styledLayout = true
+        private var lastActive = NSRange(location: NSNotFound, length: 0)
+        private var mini: NSHostingView<MiniToolbar>?
 
         init(_ parent: NoteEditor) { self.parent = parent }
 
@@ -192,7 +204,7 @@ struct NoteEditor: NSViewRepresentable {
                 }
                 loadedID = noteID
                 restyle(storage)
-            } else if styledSize != parent.fontSize || styledSeparator != parent.separator {
+            } else if styledSize != parent.fontSize || styledSeparator != parent.separator || styledLayout != parent.layout {
                 restyle(storage)
             }
             if switched, text.isEmpty { view.window?.makeFirstResponder(view) }
@@ -203,7 +215,11 @@ struct NoteEditor: NSViewRepresentable {
         private func restyle(_ storage: NSTextStorage) {
             styledSize = parent.fontSize
             styledSeparator = parent.separator
-            MarkdownStyler.apply(to: storage, fontSize: CGFloat(parent.fontSize), separator: parent.separator)
+            styledLayout = parent.layout
+            let active = textView?.selectedRange() ?? NSRange(location: 0, length: 0)
+            lastActive = (storage.string as NSString).paragraphRange(for: active)
+            MarkdownStyler.apply(to: storage, fontSize: CGFloat(parent.fontSize), separator: parent.separator,
+                                 hideMarkers: parent.layout, active: active)
             textView?.typingAttributes = [.font: NSFont.systemFont(ofSize: CGFloat(parent.fontSize)), .foregroundColor: NSColor(Socle.C.text)]
         }
 
@@ -211,12 +227,52 @@ struct NoteEditor: NSViewRepresentable {
             guard !isLoading, let view = textView, let storage = view.textStorage else { return }
             if !view.hasMarkedText() { restyle(storage) }
             parent.onChange(view.string)
+            refreshActive()
+            hideMini()
         }
 
         func textViewDidChangeSelection(_ notification: Notification) {
             guard let view = textView else { return }
             let range = view.selectedRange()
+            // Mise en page : la ligne active change, donc les balises affichées aussi.
+            if parent.layout, !view.hasMarkedText(), let storage = view.textStorage {
+                let para = (view.string as NSString).paragraphRange(for: range)
+                if para != lastActive || range.length > 0 { restyle(storage) }
+            }
+            refreshActive()
+            view.onSelectionSettled = { [weak self] in self?.showMini() }
+            if range.length == 0 { hideMini() } else if NSEvent.pressedMouseButtons == 0 { showMini() }
             parent.onSelection(range.length > 0 ? (view.string as NSString).substring(with: range) : "")
+        }
+
+        private func refreshActive() {
+            guard let view = textView else { return }
+            EditorController.shared.active = MarkdownAssistant.activeActions(in: view.string, selection: view.selectedRange())
+        }
+
+        // MARK: Mini-barre près de la sélection
+
+        private func hideMini() { mini?.removeFromSuperview(); mini = nil }
+
+        private func showMini() {
+            guard let view = textView, view.selectedRange().length > 0, let layoutManager = view.layoutManager,
+                  let container = view.textContainer else { hideMini(); return }
+            let glyphs = layoutManager.glyphRange(forCharacterRange: view.selectedRange(), actualCharacterRange: nil)
+            var rect = layoutManager.boundingRect(forGlyphRange: glyphs, in: container)
+            rect.origin.x += view.textContainerOrigin.x
+            rect.origin.y += view.textContainerOrigin.y
+            if mini == nil {
+                let host = NSHostingView(rootView: MiniToolbar(controller: EditorController.shared))
+                view.addSubview(host)
+                mini = host
+            }
+            guard let host = mini else { return }
+            let size = host.fittingSize
+            var x = rect.midX - size.width / 2
+            x = max(8, min(x, view.bounds.width - size.width - 8))
+            var y = rect.minY - size.height - 8
+            if y < 4 { y = rect.maxY + 8 }   // pas de place au-dessus : sous la sélection
+            host.frame = NSRect(x: x, y: y, width: size.width, height: size.height)
         }
 
         func textView(_ textView: NSTextView, clickedOnLink link: Any, at charIndex: Int) -> Bool {

@@ -70,13 +70,54 @@ final class EditorController: ObservableObject {
         view.apply(edit)
     }
 
+    /// Couleur du texte sélectionné (nil : retire la couleur).
+    func applyColor(_ hex: String?) {
+        guard let view = textView else { return }
+        let context = MarkdownAssistant.Context(glyph: Prefs.glyph, separator: Prefs.separatorText,
+                                                textPlaceholder: L("md.placeholder.text"), urlPlaceholder: L("md.placeholder.url"))
+        let edit = MarkdownAssistant.color(hex, in: view.string, selection: view.selectedRange(), context: context)
+        view.window?.makeFirstResponder(view)
+        view.apply(edit)
+    }
+
     func showHelp() { helpShown = true }
+}
+
+extension Color {
+    /// « RRGGBB » (avec ou sans #).
+    init(hex: String) {
+        let value = UInt32(hex.trimmingCharacters(in: CharacterSet(charactersIn: "#")), radix: 16) ?? 0xFFFFFF
+        self.init(red: Double((value >> 16) & 0xFF) / 255, green: Double((value >> 8) & 0xFF) / 255, blue: Double(value & 0xFF) / 255)
+    }
+}
+
+/// Pastilles de couleur du texte + « sans couleur ».
+struct ColorSwatches: View {
+    var size: CGFloat = 16
+    let pick: (String?) -> Void
+
+    var body: some View {
+        HStack(spacing: 6) {
+            ForEach(MarkdownAssistant.palette, id: \.self) { hex in
+                Circle().fill(Color(hex: hex)).frame(width: size, height: size)
+                    .overlay(Circle().stroke(Color.white.opacity(0.25), lineWidth: 1))
+                    .contentShape(Circle())
+                    .onTapGesture { pick(hex) }
+                    .help(L("md.color"))
+            }
+            Image(systemName: "circle.slash").font(.system(size: size - 1)).foregroundStyle(Socle.C.textMuted)
+                .contentShape(Circle())
+                .onTapGesture { pick(nil) }
+                .help(L("md.color.none"))
+        }
+    }
 }
 
 // MARK: Barre de format
 
 struct FormatBar: View {
     @ObservedObject private var controller = EditorController.shared
+    @State private var colorsShown = false
     private let groups: [[MarkdownAction]] = [
         [.h1, .h2, .h3], [.bold, .italic, .strike, .code, .link], [.bullet, .numbered, .task], [.quote, .codeBlock, .separator],
     ]
@@ -89,6 +130,13 @@ struct FormatBar: View {
                     FormatButton(action: action, active: controller.active.contains(action)) { controller.apply(action) }
                 }
             }
+            Rectangle().fill(Socle.C.border).frame(width: 1, height: 16).padding(.horizontal, Socle.M.space1)
+            Button { colorsShown.toggle() } label: { Image(systemName: "paintpalette").font(.system(size: 13)) }
+                .buttonStyle(SocleButtonStyle(.tertiary, height: 28)).frame(width: 34)
+                .help(L("md.color"))
+                .popover(isPresented: $colorsShown, arrowEdge: .bottom) {
+                    ColorSwatches(size: 20) { controller.applyColor($0); colorsShown = false }.padding(Socle.M.space3)
+                }
             Spacer(minLength: Socle.M.space2)
             Button { controller.helpShown.toggle() } label: {
                 Image(systemName: "questionmark.circle").font(.system(size: 14))
@@ -212,10 +260,13 @@ struct MiniToolbar: View {
     private let actions: [MarkdownAction] = [.bold, .italic, .strike, .code, .link, .h2, .bullet, .quote]
 
     var body: some View {
-        HStack(spacing: 2) {
-            ForEach(actions, id: \.self) { action in
-                MiniButton(action: action, active: controller.active.contains(action)) { controller.apply(action) }
+        VStack(spacing: 4) {
+            HStack(spacing: 2) {
+                ForEach(actions, id: \.self) { action in
+                    MiniButton(action: action, active: controller.active.contains(action)) { controller.apply(action) }
+                }
             }
+            ColorSwatches(size: 15) { controller.applyColor($0) }.padding(.bottom, 3)
         }
         .padding(3)
         .background(Socle.C.surfaceRaised, in: RoundedRectangle(cornerRadius: Socle.M.radiusMd))

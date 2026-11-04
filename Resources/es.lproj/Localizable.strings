@@ -139,3 +139,7 @@
 "set.display.both" = "Ambos";
 "set.display.hint" = "Barra de menús: un clic en el icono abre un panel de notas rápidas sin dejar lo que estás haciendo.";
 "set.hotkey" = "Atajo global ⌃⌥N para abrir el panel";
+"menubar.resize" = "Cambiar el tamaño del panel";
+"md.color" = "Color del texto";
+"md.color.none" = "Sin color";
+"set.login" = "Abrir al iniciar sesión";

@@ -139,3 +139,7 @@
 "set.display.both" = "Les deux";
 "set.display.hint" = "Barre de menu : un clic sur l’icône ouvre un volet de notes rapide, sans quitter ce que vous faites.";
 "set.hotkey" = "Raccourci global ⌃⌥N pour ouvrir le volet";
+"menubar.resize" = "Agrandir le volet";
+"md.color" = "Couleur du texte";
+"md.color.none" = "Sans couleur";
+"set.login" = "Démarrer à l’ouverture de session";

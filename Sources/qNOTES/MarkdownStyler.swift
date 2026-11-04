@@ -16,6 +16,7 @@ enum MarkdownStyler {
     private static let strike = try! NSRegularExpression(pattern: "~~(?=\\S)(.+?)(?<=\\S)~~")
     private static let code = try! NSRegularExpression(pattern: "`([^`\\n]+)`")
     private static let link = try! NSRegularExpression(pattern: "\\[([^\\]\\n]+)\\]\\(([^)\\n]+)\\)")
+    private static let colorSpan = try! NSRegularExpression(pattern: "<span style=\"color:#([0-9A-Fa-f]{6})\">(.*?)</span>")
     private static let url = try! NSRegularExpression(pattern: "https?://[^\\s<>\\)\\]]+")
 
     static func apply(to storage: NSTextStorage, fontSize: CGFloat, separator: String, hideMarkers: Bool = false, active: NSRange = NSRange(location: 0, length: 0)) {
@@ -126,6 +127,12 @@ enum MarkdownStyler {
         mark(strike, markerLength: { _ in 2 }, style: { storage.addAttribute(.strikethroughStyle, value: NSUnderlineStyle.single.rawValue, range: $0) })
         mark(code, markerLength: { _ in 1 }, style: { storage.addAttributes([.font: mono, .backgroundColor: codeBG], range: $0) })
 
+        for m in colorSpan.matches(in: string, range: range) {
+            let inner = m.range(at: 2)
+            storage.addAttribute(.foregroundColor, value: NSColor(Color(hex: (string as NSString).substring(with: m.range(at: 1)))), range: inner)
+            dim(NSRange(location: m.range.location, length: inner.location - m.range.location))   // <span style="color:#…">
+            dim(NSRange(location: inner.upperBound, length: m.range.upperBound - inner.upperBound)) // </span>
+        }
         for m in link.matches(in: string, range: range) {
             let target = (string as NSString).substring(with: m.range(at: 2))
             let label = m.range(at: 1)

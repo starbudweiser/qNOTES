@@ -139,3 +139,7 @@
 "set.display.both" = "Both";
 "set.display.hint" = "Menu bar: one click on the icon opens a quick notes panel without leaving what you are doing.";
 "set.hotkey" = "Global shortcut ⌃⌥N to open the panel";
+"menubar.resize" = "Resize panel";
+"md.color" = "Text color";
+"md.color.none" = "No color";
+"set.login" = "Start at login";

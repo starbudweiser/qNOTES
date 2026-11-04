@@ -139,3 +139,7 @@
 "set.display.both" = "Entrambi";
 "set.display.hint" = "Barra dei menu: un clic sull’icona apre un pannello di note rapide senza interrompere ciò che stai facendo.";
 "set.hotkey" = "Scorciatoia globale ⌃⌥N per aprire il pannello";
+"menubar.resize" = "Ridimensiona il pannello";
+"md.color" = "Colore del testo";
+"md.color.none" = "Senza colore";
+"set.login" = "Avvia all’accesso";

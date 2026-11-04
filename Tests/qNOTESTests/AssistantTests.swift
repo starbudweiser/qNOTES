@@ -125,3 +125,35 @@ import Testing
         #expect(MarkdownAssistant.activeActions(in: "1. a", selection: NSRange(location: 4, length: 0)) == [.numbered])
     }
 }
+
+@Suite struct ColorTests {
+    func apply(_ e: TextEdit, to text: String) -> String { (text as NSString).replacingCharacters(in: e.range, with: e.replacement) }
+
+    @Test func wrapsSelection() {
+        let e = MarkdownAssistant.color("FF851A", in: "un mot ici", selection: NSRange(location: 3, length: 3))
+        #expect(apply(e, to: "un mot ici") == "un <span style=\"color:#FF851A\">mot</span> ici")
+        #expect(e.selection.length == 3)
+    }
+
+    @Test func recolorsInsteadOfNesting() {
+        let text = "un <span style=\"color:#FF851A\">mot</span> ici"
+        let e = MarkdownAssistant.color("337AF5", in: text, selection: NSRange(location: 3 + 28, length: 3))
+        #expect(apply(e, to: text) == "un <span style=\"color:#337AF5\">mot</span> ici")
+    }
+
+    @Test func removesColor() {
+        let text = "un <span style=\"color:#FF851A\">mot</span> ici"
+        let e = MarkdownAssistant.color(nil, in: text, selection: NSRange(location: 3 + 28, length: 0))
+        #expect(apply(e, to: text) == "un mot ici")
+    }
+
+    @Test func colorsEachLine() {
+        let e = MarkdownAssistant.color("33BD4D", in: "a\n\nb", selection: NSRange(location: 0, length: 4))
+        #expect(apply(e, to: "a\n\nb") == "<span style=\"color:#33BD4D\">a</span>\n\n<span style=\"color:#33BD4D\">b</span>")
+    }
+
+    @Test func titleIgnoresColorTags() {
+        let note = Note(text: "<span style=\"color:#FF851A\">Courses</span> du jour")
+        #expect(note.title == "Courses du jour")
+    }
+}

@@ -256,3 +256,50 @@ extension MarkdownAssistant {
         return active
     }
 }
+
+// MARK: Couleur du texte
+
+extension MarkdownAssistant {
+    /// Couleurs proposées pour le texte (hexadécimal sans « # »), dans l'ordre des pastilles : jaune, orange, rouge, violet, bleu, cyan, vert.
+    public static let palette = ["FFC71A", "FF851A", "F5423D", "9E4DDB", "337AF5", "1AB3CC", "33BD4D"]
+
+    private static let colorSpan = try! NSRegularExpression(pattern: "<span style=\"color:#([0-9A-Fa-f]{6})\">(.*?)</span>")
+
+    /// Couleur du texte sélectionné, en HTML en ligne (`<span style="color:#RRGGBB">…</span>`), seule façon de colorer du Markdown.
+    /// `hex` nil retire la couleur. Une sélection déjà colorée change de couleur au lieu d'empiler les balises ;
+    /// une sélection sur plusieurs lignes est colorée ligne par ligne (le rendu travaille ligne par ligne).
+    public static func color(_ hex: String?, in text: String, selection: NSRange, context: Context = Context()) -> TextEdit {
+        let ns = text as NSString
+        let loc = min(selection.location, ns.length)
+        let sel = NSRange(location: loc, length: min(selection.length, ns.length - loc))
+        func open(_ h: String) -> String { "<span style=\"color:#\(h.uppercased())\">" }
+
+        for m in colorSpan.matches(in: text, range: ns.paragraphRange(for: sel)) {
+            let r = m.range
+            guard sel.location >= r.location, sel.upperBound <= r.upperBound else { continue }
+            let inner = ns.substring(with: m.range(at: 2))
+            let head = hex.map { open($0) } ?? ""
+            return TextEdit(range: r, replacement: hex == nil ? inner : head + inner + "</span>",
+                            selection: NSRange(location: r.location + (head as NSString).length, length: (inner as NSString).length))
+        }
+        guard let hex else { return TextEdit(range: sel, replacement: ns.substring(with: sel), selection: sel) }
+        let head = open(hex)
+        if sel.length == 0 {
+            let p = context.textPlaceholder
+            return TextEdit(range: sel, replacement: head + p + "</span>",
+                            selection: NSRange(location: sel.location + (head as NSString).length, length: (p as NSString).length))
+        }
+        let wrapped = ns.substring(with: sel).components(separatedBy: "\n").map { line -> String in
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            guard !trimmed.isEmpty else { return line }
+            let lead = line.prefix(while: { $0 == " " || $0 == "\t" })
+            let body = line.dropFirst(lead.count)
+            let tail = String(body.reversed().prefix(while: { $0 == " " || $0 == "\t" }).reversed())
+            return lead + head + body.dropLast(tail.count) + "</span>" + tail
+        }.joined(separator: "\n")
+        let single = !ns.substring(with: sel).contains("\n")
+        return TextEdit(range: sel, replacement: wrapped,
+                        selection: single ? NSRange(location: sel.location + (head as NSString).length, length: sel.length)
+                                          : NSRange(location: sel.location, length: (wrapped as NSString).length))
+    }
+}

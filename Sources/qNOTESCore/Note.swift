@@ -22,6 +22,7 @@ public struct Note: Codable, Identifiable, Equatable, Sendable {
     static func plain(_ raw: Substring) -> String? {
         var s = raw.trimmingCharacters(in: .whitespaces)
         guard s.contains(where: { $0.isLetter || $0.isNumber }) else { return nil }
+        s = s.replacingOccurrences(of: "</?span[^>]*>", with: "", options: .regularExpression)   // couleur du texte
         while let first = s.first, "#>-*+•▸–→◦_ \t".contains(first) { s.removeFirst() }
         for box in ["[ ]", "[x]", "[X]"] where s.hasPrefix(box) { s = String(s.dropFirst(3)) }
         for mark in ["**", "__", "~~", "`"] { s = s.replacingOccurrences(of: mark, with: "") }

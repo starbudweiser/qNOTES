@@ -15,6 +15,7 @@ compteur de mots, widgets. Swift/SwiftUI + AppKit (NSTextView), sans bac à sabl
 - Assistant Markdown : logique pure dans `qNOTESCore/MarkdownAssistant.swift` (testée), branchée par `MarkdownAssist.swift` (barre, aide, menu Format).
 - Import : `qNOTESCore/Importer.swift` (sauvegardes JSON de Tot, lues dans `~/Library/Containers/com.iconfactory.Tot/…/Backups`, `QNOTES_TOT_DIR` pour les essais ; fichiers .md/.txt) ; `qNOTES --import <fichier>` en terminal.
 - Mode Mise en page : `MarkdownStyler` masque les balises (police de 1 pt, transparente) sauf sur la ligne active ; mini-barre = sous-vue de la zone de texte (`NoteEditor.Coordinator.showMini`). `QNOTES_CAPTURE_SELECT="début,longueur"` la montre en capture.
+- Barre de menu : `MenuBar.swift` (`MenuBarController` = NSStatusItem + NSPopover, `QuickView`, `HotKey` Carbon ⌃⌥N). Réglage `displayMode` (both/menubar/dock) appliqué en direct par `AppDelegate.applyDisplay` (menubar = politique .accessory, pas de fenêtre au lancement). `EditorController.shared.textView` suit la zone de texte qui a le focus. `--capture-popover f.png` pour le volet.
 - Widget : cible `Sources/qNOTESWidget` (WidgetKit, point d'entrée `_NSExtensionMain` via `unsafeFlags`), empaquetée par `build_app.sh` dans
   `Contents/PlugIns/qNOTESWidget.appex` (bac à sable + groupe `35KLMK53PN.fr.stephan.qnotes`, droits dans `assets/*.entitlements`, signés par un
   second passage après `sign_app.sh`). L'appli écrit `widget.json` dans `~/Library/Group Containers/<groupe>` (`WidgetBridge`, `WidgetShare`) ;

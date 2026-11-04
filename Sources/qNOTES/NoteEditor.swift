@@ -19,6 +19,13 @@ final class NoteTextView: NSTextView {
         scrollRangeToVisible(selectedRange())
     }
 
+    /// Deux zones de texte peuvent coexister (fenêtre et volet de la barre de menu) : la barre de format agit sur celle qui a le focus.
+    override func becomeFirstResponder() -> Bool {
+        let ok = super.becomeFirstResponder()
+        if ok { EditorController.shared.textView = self }
+        return ok
+    }
+
     private var currentLine: (range: NSRange, text: String) {
         let ns = string as NSString
         let range = ns.lineRange(for: NSRange(location: min(selectedRange().location, ns.length), length: 0))

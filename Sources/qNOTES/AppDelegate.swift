@@ -12,6 +12,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var window: NSWindow?
     private var widgetBridge: WidgetBridge?
     private var settingsWindow: NSWindow?
+    private var menuBar: MenuBarController?
+    private var hotKey: HotKey?
+    private var appliedDisplay = ""
+    private var isCapture: Bool { CommandLine.arguments.contains { $0.hasPrefix("--capture") } }
 
     override init() {
         let directory = (Prefs.sync ? NoteStore.iCloudDirectory : nil) ?? NoteStore.localDirectory
@@ -31,6 +35,36 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         updates.configure(repo: "qNOTES", lang: { Bundle.main.preferredLocalizations.first ?? "en" })
         updates.autoCheck = { Prefs.defaults.object(forKey: Prefs.autoUpdate) as? Bool ?? true }
         updates.start()
+        setUpDisplay()
+        NotificationCenter.default.addObserver(forName: UserDefaults.didChangeNotification, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.applyDisplay() }
+        }
+    }
+
+    // MARK: Dock et barre de menu
+
+    private func setUpDisplay() {
+        guard !isCapture else { return }
+        let bar = MenuBarController(model: model, store: store)
+        bar.openApp = { [weak self] in self?.showMainWindow() }
+        bar.openSettings = { [weak self] in self?.showSettings() }
+        menuBar = bar
+        hotKey = HotKey { [weak self] in
+            guard let self else { return }
+            if let bar = self.menuBar, bar.isVisible { bar.toggle() } else { self.showMainWindow() }
+        }
+        applyDisplay()
+    }
+
+    /// Applique les réglages Affichage (Dock, barre de menu, les deux) et le raccourci global ; sans effet si rien n'a changé.
+    private func applyDisplay() {
+        guard let bar = menuBar, let hotKey else { return }
+        let key = Prefs.display + (Prefs.hotkey ? "+hotkey" : "")
+        guard key != appliedDisplay else { return }
+        appliedDisplay = key
+        bar.setVisible(Prefs.display != "dock")
+        NSApp.setActivationPolicy(Prefs.display == "menubar" ? .accessory : .regular)
+        if Prefs.hotkey { hotKey.register() } else { hotKey.unregister() }
     }
 
     private var shownOnActivation = false
@@ -39,6 +73,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     func applicationDidBecomeActive(_ notification: Notification) {
         guard !shownOnActivation else { return }
         shownOnActivation = true
+        if Prefs.display == "menubar" { return }   // seule l'icône de la barre de menu : pas de fenêtre au lancement
         if window == nil, !NSApp.windows.contains(where: { $0.isVisible }) { showMainWindow() }
     }
 
@@ -58,7 +93,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         return true
     }
 
-    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { Prefs.display == "dock" }
 
     func applicationWillTerminate(_ notification: Notification) {
         store.flush()

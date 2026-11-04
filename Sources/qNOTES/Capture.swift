@@ -29,6 +29,14 @@ enum Capture {
         render(view, size: NSSize(width: 560, height: 640), path)
     }
 
+    static func popover(_ delegate: AppDelegate, _ path: String) {
+        let view = NSHostingView(rootView: QuickView(model: delegate.model, store: delegate.store))
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 440, height: 520), styleMask: [.borderless], backing: .buffered, defer: false)
+        window.appearance = NSAppearance(named: .darkAqua)
+        window.contentView = view
+        render(view, size: NSSize(width: 440, height: 520), path)
+    }
+
     static func help(_ delegate: AppDelegate, _ path: String) {
         let view = NSHostingView(rootView: MarkdownHelp(controller: EditorController.shared))
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 380, height: 520), styleMask: [.borderless], backing: .buffered, defer: false)

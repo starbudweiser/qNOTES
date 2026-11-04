@@ -21,6 +21,8 @@ struct SettingsView: View {
     @AppStorage(Prefs.backupKeep) private var keep = 30
     @AppStorage(Prefs.backupHours) private var hours = 1
     @AppStorage(Prefs.autoUpdate) private var autoUpdate = true
+    @AppStorage(Prefs.displayMode) private var display = "both"
+    @AppStorage(Prefs.hotkeyEnabled) private var hotkey = true
     @State private var backups: [BackupInfo] = []
     @State private var toRestore: BackupInfo?
     @State private var notice = ""
@@ -30,6 +32,11 @@ struct SettingsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Socle.M.space6) {
+                section(L("set.display")) {
+                    SocleSegmented(options: Prefs.displayModes, selection: display, label: { L("set.display.\($0)") }) { display = $0 }
+                    hint(L("set.display.hint"))
+                    toggle(L("set.hotkey"), $hotkey)
+                }
                 section(L("set.writing")) {
                     row(L("set.fontsize")) {
                         SocleSegmented(options: [14.0, 16.0, 18.0, 20.0], selection: fontSize, label: { "\(Int($0))" }) { fontSize = $0 }

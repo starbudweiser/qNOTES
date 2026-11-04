@@ -129,3 +129,13 @@
 "mode.markdown" = "Balises";
 "mode.help" = "Mise en page : les balises sont masquées hors de la ligne en cours. Balises : tout le Markdown reste visible.";
 "mode.toggle" = "Basculer mise en page / balises";
+
+"menubar.open" = "Ouvrir qNOTES";
+"menubar.notes" = "Toutes les notes";
+"menubar.tooltip" = "Notes rapides";
+"set.display" = "Affichage";
+"set.display.dock" = "Dock";
+"set.display.menubar" = "Barre de menu";
+"set.display.both" = "Les deux";
+"set.display.hint" = "Barre de menu : un clic sur l’icône ouvre un volet de notes rapide, sans quitter ce que vous faites.";
+"set.hotkey" = "Raccourci global ⌃⌥N pour ouvrir le volet";

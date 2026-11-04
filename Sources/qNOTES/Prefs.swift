@@ -15,6 +15,12 @@ enum Prefs {
     static let theme = "theme"
     static let layoutMode = "layoutMode"
 
+    static let displayMode = "displayMode"
+    static let hotkeyEnabled = "hotkeyEnabled"
+
+    /// Où vit l'appli : « dock », « menubar » (icône dans la barre de menu seulement) ou « both ».
+    static let displayModes = ["both", "menubar", "dock"]
+
     static let defaultFontSize = 16.0
 
     static var defaults: UserDefaults { .standard }
@@ -27,5 +33,10 @@ enum Prefs {
     static var keep: Int { defaults.object(forKey: backupKeep) as? Int ?? 30 }
     static var hours: Int { defaults.object(forKey: backupHours) as? Int ?? 1 }
     static var layout: Bool { defaults.object(forKey: layoutMode) as? Bool ?? true }
+    static var display: String {
+        let value = defaults.string(forKey: displayMode) ?? "both"
+        return displayModes.contains(value) ? value : "both"
+    }
+    static var hotkey: Bool { defaults.object(forKey: hotkeyEnabled) as? Bool ?? true }
     static var sync: Bool { defaults.object(forKey: syncICloud) as? Bool ?? false }
 }

@@ -129,3 +129,13 @@
 "mode.markdown" = "Etiquetas";
 "mode.help" = "Diseño: las etiquetas se ocultan salvo en la línea actual. Etiquetas: todo el Markdown permanece visible.";
 "mode.toggle" = "Cambiar diseño / etiquetas";
+
+"menubar.open" = "Abrir qNOTES";
+"menubar.notes" = "Todas las notas";
+"menubar.tooltip" = "Notas rápidas";
+"set.display" = "Visualización";
+"set.display.dock" = "Dock";
+"set.display.menubar" = "Barra de menús";
+"set.display.both" = "Ambos";
+"set.display.hint" = "Barra de menús: un clic en el icono abre un panel de notas rápidas sin dejar lo que estás haciendo.";
+"set.hotkey" = "Atajo global ⌃⌥N para abrir el panel";

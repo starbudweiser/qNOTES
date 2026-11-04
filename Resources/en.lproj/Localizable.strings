@@ -129,3 +129,13 @@
 "mode.markdown" = "Tags";
 "mode.help" = "Layout: tags are hidden except on the current line. Tags: all the Markdown stays visible.";
 "mode.toggle" = "Switch Layout / Tags";
+
+"menubar.open" = "Open qNOTES";
+"menubar.notes" = "All notes";
+"menubar.tooltip" = "Quick notes";
+"set.display" = "Display";
+"set.display.dock" = "Dock";
+"set.display.menubar" = "Menu bar";
+"set.display.both" = "Both";
+"set.display.hint" = "Menu bar: one click on the icon opens a quick notes panel without leaving what you are doing.";
+"set.hotkey" = "Global shortcut ⌃⌥N to open the panel";

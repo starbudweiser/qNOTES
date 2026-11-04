@@ -25,6 +25,7 @@ struct SettingsView: View {
     @AppStorage(Prefs.autoUpdate) private var autoUpdate = true
     @AppStorage(Prefs.displayMode) private var display = "both"
     @AppStorage(Prefs.hotkeyEnabled) private var hotkey = true
+    @AppStorage(Prefs.dotNumbers) private var dotNumbers = false
     @State private var login = SMAppService.mainApp.status == .enabled
     @State private var backups: [BackupInfo] = []
     @State private var toRestore: BackupInfo?
@@ -39,6 +40,7 @@ struct SettingsView: View {
                     SocleSegmented(options: Prefs.displayModes, selection: display, label: { L("set.display.\($0)") }) { display = $0 }
                     hint(L("set.display.hint"))
                     toggle(L("set.hotkey"), $hotkey)
+                    toggle(L("set.dotnumbers"), $dotNumbers)
                     toggle(L("set.login"), Binding(get: { login }, set: { setLogin($0) }))
                 }
                 section(L("set.writing")) {

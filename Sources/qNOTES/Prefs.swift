@@ -17,6 +17,7 @@ enum Prefs {
 
     static let displayMode = "displayMode"
     static let hotkeyEnabled = "hotkeyEnabled"
+    static let dotNumbers = "dotNumbers"
 
     /// Où vit l'appli : « dock », « menubar » (icône dans la barre de menu seulement) ou « both ».
     static let displayModes = ["both", "menubar", "dock"]

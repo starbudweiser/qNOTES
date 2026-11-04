@@ -22,7 +22,10 @@ final class MenuBarController: NSObject, NSWindowDelegate {
     private let store: NoteStore
     private let panel: QuickPanel
     private var item: NSStatusItem?
-    private var lastResignClose = Date.distantPast
+    private var lastShown = Date.distantPast
+    /// Le volet était-il affiché quand le bouton a été enfoncé ? Le clic lui fait perdre le focus (il se ferme) avant l'action.
+    private var visibleAtMouseDown: Bool?
+    private var mouseMonitor: Any?
     private var resizeStart: (mouse: NSPoint, frame: NSRect)?
     var openApp: () -> Void = {}
     var openSettings: () -> Void = {}
@@ -38,6 +41,7 @@ final class MenuBarController: NSObject, NSWindowDelegate {
         panel.hasShadow = true
         panel.level = .popUpMenu
         panel.isReleasedWhenClosed = false
+        panel.hidesOnDeactivate = false
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         panel.minSize = Self.minSize
         panel.maxSize = NSSize(width: 1200, height: 1400)
@@ -90,22 +94,28 @@ final class MenuBarController: NSObject, NSWindowDelegate {
                 button.sendAction(on: [.leftMouseUp, .rightMouseUp])
             }
             item = status
+            mouseMonitor = NSEvent.addLocalMonitorForEvents(matching: .leftMouseDown) { [weak self] event in
+                if let self, event.window != nil, event.window === self.item?.button?.window { self.visibleAtMouseDown = self.panel.isVisible }
+                return event
+            }
         } else if !visible, let status = item {
             close()
+            if let monitor = mouseMonitor { NSEvent.removeMonitor(monitor); mouseMonitor = nil }
             NSStatusBar.system.removeStatusItem(status)
             item = nil
         }
     }
 
     @objc private func clicked() {
-        if NSApp.currentEvent?.type == .rightMouseUp { showMenu() } else { toggle() }
+        if NSApp.currentEvent?.type == .rightMouseUp { showMenu(); return }
+        // Un second clic sur l'icône referme le volet ; il ne doit pas le rouvrir parce que le clic l'a déjà fait fermer.
+        let wasVisible = visibleAtMouseDown ?? panel.isVisible
+        visibleAtMouseDown = nil
+        if wasVisible { close() } else { show() }
     }
 
     func toggle() {
-        if panel.isVisible { close(); return }
-        // Le clic sur l'icône fait d'abord perdre le focus au volet (il se ferme) : ne pas le rouvrir aussitôt.
-        if Date().timeIntervalSince(lastResignClose) < 0.25 { return }
-        show()
+        if panel.isVisible { close() } else { show() }
     }
 
     func close() { panel.orderOut(nil) }
@@ -124,8 +134,10 @@ final class MenuBarController: NSObject, NSWindowDelegate {
             origin.y = max(area.minY + 8, origin.y)
         }
         panel.setFrameOrigin(origin)
-        NSApp.activate()
-        panel.makeKeyAndOrderFront(nil)
+        lastShown = Date()
+        NSApp.activate(ignoringOtherApps: true)
+        panel.orderFrontRegardless()
+        panel.makeKey()
         DispatchQueue.main.async { [weak self] in
             guard let view = self?.panel.contentView,
                   let text = view.firstDescendant(ofType: NoteTextView.self, where: { _ in true }) else { return }
@@ -134,8 +146,8 @@ final class MenuBarController: NSObject, NSWindowDelegate {
     }
 
     func windowDidResignKey(_ notification: Notification) {
-        guard panel.isVisible else { return }
-        lastResignClose = Date()
+        // Le changement d'application en cours d'ouverture ne doit pas refermer aussitôt le volet.
+        guard panel.isVisible, Date().timeIntervalSince(lastShown) > 0.3 else { return }
         close()
     }
 
@@ -189,13 +201,20 @@ struct QuickView: View {
     @State private var selection = ""
     @AppStorage(Prefs.fontSize) private var fontSize = Prefs.defaultFontSize
     @AppStorage(Prefs.fontFamily) private var fontFamily = ""
+    @AppStorage(Prefs.dotNumbers) private var dotNumbers = false
+
+    /// Les pastilles suivent l'ordre de création : une note garde sa couleur, quelles que soient ses modifications.
+    private var dotNotes: [Note] {
+        Array(store.notes.sorted { ($0.created, $0.id.uuidString) < ($1.created, $1.id.uuidString) }.prefix(dotColors.count))
+    }
 
     var body: some View {
         let note = model.selectedID.flatMap { store.note($0) }
         VStack(spacing: 0) {
             HStack(spacing: Socle.M.space2) {
-                ForEach(Array(store.notes.prefix(dotColors.count).enumerated()), id: \.element.id) { index, entry in
-                    Dot(color: dotColors[index], selected: entry.id == model.selectedID, title: entry.title.isEmpty ? L("note.untitled") : entry.title)
+                ForEach(Array(dotNotes.enumerated()), id: \.element.id) { index, entry in
+                    Dot(color: dotColors[index], number: dotNumbers ? index + 1 : nil, selected: entry.id == model.selectedID,
+                        title: entry.title.isEmpty ? L("note.untitled") : entry.title)
                         .onTapGesture { model.selectedID = entry.id }
                 }
                 Spacer(minLength: Socle.M.space2)
@@ -247,13 +266,18 @@ struct QuickView: View {
 
 private struct Dot: View {
     let color: Color
+    let number: Int?
     let selected: Bool
     let title: String
 
     var body: some View {
-        Circle().fill(color).frame(width: 14, height: 14)
+        let size: CGFloat = number == nil ? 14 : 18
+        Circle().fill(color).frame(width: size, height: size)
+            .overlay {
+                if let number { Text("\(number)").font(.system(size: 10, weight: .bold)).foregroundStyle(Color.black.opacity(0.8)) }
+            }
             .overlay(Circle().stroke(Socle.C.textStrong, lineWidth: selected ? 2 : 0).padding(-3))
-            .frame(width: 22, height: 22)
+            .frame(width: 24, height: 24)
             .contentShape(Rectangle())
             .help(title)
     }

@@ -135,3 +135,4 @@
 "fmt.link.title" = "Aggiungi un collegamento";
 "fmt.link.message" = "Indirizzo del collegamento per il testo selezionato.";
 "fmt.link.ok" = "Aggiungi";
+"set.dotnumbers" = "Mostra un numero nei pallini colorati del pannello";

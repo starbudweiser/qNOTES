@@ -135,3 +135,4 @@
 "fmt.link.title" = "Ajouter un lien";
 "fmt.link.message" = "Adresse du lien pour le texte sélectionné.";
 "fmt.link.ok" = "Ajouter";
+"set.dotnumbers" = "Afficher un numéro dans les pastilles de couleur du volet";

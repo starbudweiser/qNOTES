@@ -135,3 +135,4 @@
 "fmt.link.title" = "Add a link";
 "fmt.link.message" = "Address of the link for the selected text.";
 "fmt.link.ok" = "Add";
+"set.dotnumbers" = "Show a number in the panel’s color dots";

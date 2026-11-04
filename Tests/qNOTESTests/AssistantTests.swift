@@ -111,4 +111,17 @@ import Testing
         let (r, sel) = run(.bold, t, range(t, "😀"))
         #expect(r == "café **😀** ok" && sel == "😀")
     }
+
+    @Test func activeActionsFollowTheCaret() {
+        let t = "# Titre\nun **mot** et `code`\n- [ ] tâche\n> cite\n```\nx\n```"
+        func active(_ word: String) -> Set<MarkdownAction> { MarkdownAssistant.activeActions(in: t, selection: NSRange(location: (t as NSString).range(of: word).location + 1, length: 0)) }
+        #expect(active("Titre") == [.h1])
+        #expect(active("mot") == [.bold])
+        #expect(active("code") == [.code])
+        #expect(active("tâche") == [.task])
+        #expect(active("cite") == [.quote])
+        #expect(active("x").contains(.codeBlock))
+        #expect(MarkdownAssistant.activeActions(in: "texte simple", selection: NSRange(location: 3, length: 0)).isEmpty)
+        #expect(MarkdownAssistant.activeActions(in: "1. a", selection: NSRange(location: 4, length: 0)) == [.numbered])
+    }
 }

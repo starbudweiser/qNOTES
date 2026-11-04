@@ -5,6 +5,21 @@ let arguments = CommandLine.arguments
 
 if arguments.contains("--selftest") { MainActor.assumeIsolated { _ = NSApplication.shared; SelfTest.run() } }
 
+/// `--import <fichier>` : import sans interface (sauvegarde Tot .json, .md, .txt), pour le terminal et les essais.
+if let flag = arguments.firstIndex(of: "--import"), arguments.indices.contains(flag + 1) {
+    MainActor.assumeIsolated {
+        let store = NoteStore(directory: NoteStore.localDirectory)
+        do {
+            let report = Importer.add(try Importer.notes(from: URL(fileURLWithPath: arguments[flag + 1])), to: store)
+            print("\(report.added) notes importées, \(report.alreadyPresent) déjà présentes")
+            exit(0)
+        } catch {
+            print("Import impossible : \(error)")
+            exit(1)
+        }
+    }
+}
+
 let app = NSApplication.shared
 let delegate = MainActor.assumeIsolated { AppDelegate() }
 app.delegate = delegate

@@ -55,6 +55,8 @@ import Testing
         #expect(Note(text: "# Courses\n- lait").title == "Courses")
         #expect(Note(text: "\n\n- [ ] appeler Paul").title == "appeler Paul")
         #expect(Note(text: "").title == "")
+        #expect(Note(text: "**=====**\n**Finder Commands**\n**=====**\nsuite").title == "Finder Commands")
+        #expect(Note(text: "**Chaine Vimeo** : <https://x>").title == "Chaine Vimeo : <https://x>")
         #expect(Note(text: "Titre\nsuite du texte").preview == "suite du texte")
         #expect(Note(text: "# Courses\n- [x] Pain\n- [ ] Lait\n────\n```\ncode\n```").preview == "Pain · Lait · code")
     }

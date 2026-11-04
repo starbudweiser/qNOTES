@@ -115,6 +115,55 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         if panel.runModal() == .OK, let url = panel.url { try? note.text.write(to: url, atomically: true, encoding: .utf8) }
     }
 
+    // MARK: Import
+
+    /// Import depuis Tot : dernière sauvegarde trouvée (lecture seule, Tot n'est pas modifié), sinon choix de fichiers.
+    @objc func importNotes() {
+        showMainWindow()
+        if let url = Importer.latestTotBackup(), let notes = try? Importer.notes(from: url), !notes.isEmpty {
+            let date = (try? url.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate ?? Date()
+            let alert = NSAlert()
+            alert.messageText = L("import.title")
+            alert.informativeText = L("import.message", date.formatted(date: .abbreviated, time: .shortened), notes.count)
+            alert.addButton(withTitle: L("import.latest"))
+            alert.addButton(withTitle: L("import.choose"))
+            alert.addButton(withTitle: L("common.cancel"))
+            switch alert.runModal() {
+            case .alertFirstButtonReturn: finishImport(notes)
+            case .alertSecondButtonReturn: chooseImportFiles()
+            default: break
+            }
+        } else {
+            chooseImportFiles(message: L("import.none"))
+        }
+    }
+
+    private func chooseImportFiles(message: String? = nil) {
+        let panel = NSOpenPanel()
+        panel.allowsMultipleSelection = true
+        panel.canChooseDirectories = false
+        panel.allowedContentTypes = [.json, .plainText, UTType(filenameExtension: "md") ?? .plainText]
+        panel.message = message ?? L("import.panel")
+        guard panel.runModal() == .OK else { return }
+        let notes = panel.urls.flatMap { (try? Importer.notes(from: $0)) ?? [] }
+        if notes.isEmpty {
+            let alert = NSAlert()
+            alert.messageText = L("import.empty")
+            alert.runModal()
+        } else {
+            finishImport(notes)
+        }
+    }
+
+    private func finishImport(_ notes: [Note]) {
+        backups.backupNow()   // filet de sécurité avant d'ajouter quoi que ce soit
+        let report = Importer.add(notes, to: store)
+        if let first = report.firstID { model.selectedID = first }
+        let alert = NSAlert()
+        alert.messageText = L("import.done", report.added, report.alreadyPresent)
+        alert.runModal()
+    }
+
     @objc func togglePin() {
         guard let id = model.selectedID, let note = store.note(id) else { return }
         store.setPinned(id: id, !note.pinned)
@@ -192,6 +241,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         add(L("menu.file"), [
             item(L("note.new"), #selector(newNote), "n", target: self),
             item(L("menu.pin"), #selector(togglePin), "p", [.command, .shift], target: self),
+            item(L("menu.import"), #selector(importNotes), "i", [.command, .shift], target: self),
             item(L("menu.export"), #selector(exportNote), "e", [.command, .shift], target: self),
             .separator(),
             item(L("note.delete"), #selector(deleteNote), String(UnicodeScalar(NSBackspaceCharacter)!), .command, target: self),

@@ -144,6 +144,12 @@ public final class NoteStore: ObservableObject {
         return note
     }
 
+    /// Ajoute une note telle quelle, avec ses dates (import).
+    public func insert(_ note: Note) {
+        publish(notes.filter { $0.id != note.id } + [note])
+        markDirty(note.id)
+    }
+
     /// Modification du texte : prise en compte tout de suite, écriture disque différée.
     public func update(id: UUID, text: String) {
         guard let index = notes.firstIndex(where: { $0.id == id }), notes[index].text != text else { return }

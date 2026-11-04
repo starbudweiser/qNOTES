@@ -17,14 +17,22 @@ public struct Note: Codable, Identifiable, Equatable, Sendable {
         self.pinned = pinned
     }
 
-    /// Première ligne non vide, sans les marqueurs Markdown de début de ligne.
+    /// Ligne débarrassée des marqueurs Markdown (puces, #, >, cases, **, __, ~~, `), ou nil si elle ne contient ni lettre ni chiffre
+    /// (séparateurs, lignes de « ==== », clôtures de code).
+    static func plain(_ raw: Substring) -> String? {
+        var s = raw.trimmingCharacters(in: .whitespaces)
+        guard s.contains(where: { $0.isLetter || $0.isNumber }) else { return nil }
+        while let first = s.first, "#>-*+•▸–→◦_ \t".contains(first) { s.removeFirst() }
+        for box in ["[ ]", "[x]", "[X]"] where s.hasPrefix(box) { s = String(s.dropFirst(3)) }
+        for mark in ["**", "__", "~~", "`"] { s = s.replacingOccurrences(of: mark, with: "") }
+        s = s.trimmingCharacters(in: .whitespaces)
+        return s.contains(where: { $0.isLetter || $0.isNumber }) ? s : nil
+    }
+
+    /// Première ligne qui dit quelque chose, sans les marqueurs Markdown.
     public var title: String {
         for line in text.split(separator: "\n", omittingEmptySubsequences: true) {
-            var s = line.trimmingCharacters(in: .whitespaces)
-            while let first = s.first, "#>-*+•▸–→◦ ".contains(first) { s.removeFirst() }
-            s = s.trimmingCharacters(in: .whitespaces)
-            if s.hasPrefix("[ ]") || s.hasPrefix("[x]") || s.hasPrefix("[X]") { s = String(s.dropFirst(3)).trimmingCharacters(in: .whitespaces) }
-            if !s.isEmpty { return String(s.prefix(80)) }
+            if let s = Self.plain(line) { return String(s.prefix(80)) }
         }
         return ""
     }
@@ -34,12 +42,7 @@ public struct Note: Codable, Identifiable, Equatable, Sendable {
         var seenTitle = false
         var parts: [String] = []
         for raw in text.split(separator: "\n", omittingEmptySubsequences: true) {
-            var s = raw.trimmingCharacters(in: .whitespaces)
-            guard s.contains(where: { $0.isLetter || $0.isNumber }) else { continue }  // séparateurs, ```
-            while let first = s.first, "#>-*+•▸–→◦ ".contains(first) { s.removeFirst() }
-            for box in ["[ ]", "[x]", "[X]"] where s.hasPrefix(box) { s = String(s.dropFirst(3)) }
-            s = s.trimmingCharacters(in: .whitespaces)
-            guard !s.isEmpty, s.contains(where: { $0.isLetter || $0.isNumber }) else { continue }
+            guard let s = Self.plain(raw) else { continue }
             if !seenTitle { seenTitle = true; continue }
             parts.append(s)
             if parts.count >= 4 { break }

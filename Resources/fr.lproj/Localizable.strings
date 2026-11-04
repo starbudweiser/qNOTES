@@ -113,3 +113,14 @@
 "help.tip.bullets" = "Retour continue une liste, Tab la décale, « [] » crée une tâche et un clic sur la case la coche.";
 "help.tip.separator" = "Tapez « --- » puis Retour : la ligne devient le séparateur de vos réglages.";
 "help.tip.plain" = "Les balises restent visibles en gris : c'est du texte simple, lisible partout.";
+/* Import */
+"menu.import" = "Importer des notes…";
+"import.title" = "Importer depuis Tot";
+"import.message" = "La dernière sauvegarde de Tot (%@) contient %ld notes. Elles seront ajoutées à qNOTES ; Tot n'est pas modifié.";
+"import.latest" = "Importer";
+"import.choose" = "Choisir un fichier…";
+"import.none" = "Aucune sauvegarde de Tot trouvée. Choisissez une sauvegarde Tot (.json) ou des fichiers .md / .txt.";
+"import.panel" = "Choisissez une sauvegarde Tot (.json) ou des fichiers .md / .txt";
+"import.done" = "%ld notes importées, %ld déjà présentes";
+"import.empty" = "Aucune note à importer dans ces fichiers.";
+"import.button" = "Importer depuis Tot";

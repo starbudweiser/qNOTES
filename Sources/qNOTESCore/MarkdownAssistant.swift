@@ -204,3 +204,55 @@ public enum MarkdownAssistant {
                         selection: NSRange(location: at + (rep as NSString).length, length: 0))
     }
 }
+
+// MARK: Styles actifs sous le curseur
+
+extension MarkdownAssistant {
+    private static let inlinePatterns: [(MarkdownAction, NSRegularExpression)] = [
+        (.bold, try! NSRegularExpression(pattern: "(\\*\\*|__)(?=\\S)(.+?)(?<=\\S)\\1")),
+        (.italic, try! NSRegularExpression(pattern: "(?<![\\*\\w])(\\*|_)(?![\\s\\*_])(.+?)(?<![\\s\\*_])\\1(?![\\*\\w])")),
+        (.strike, try! NSRegularExpression(pattern: "~~(?=\\S)(.+?)(?<=\\S)~~")),
+        (.code, try! NSRegularExpression(pattern: "`([^`\\n]+)`")),
+        (.link, try! NSRegularExpression(pattern: "\\[([^\\]\\n]+)\\]\\(([^)\\n]+)\\)")),
+    ]
+
+    /// Mises en forme qui s'appliquent là où est le curseur : les boutons correspondants de la barre s'allument.
+    public static func activeActions(in text: String, selection: NSRange) -> Set<MarkdownAction> {
+        let ns = text as NSString
+        let loc = min(selection.location, ns.length)
+        var active: Set<MarkdownAction> = []
+        let para = ns.paragraphRange(for: NSRange(location: loc, length: 0))
+        var line = ns.substring(with: para)
+        if line.hasSuffix("\n") { line.removeLast() }
+
+        switch headingLevel(line) {
+        case 1: active.insert(.h1)
+        case 2: active.insert(.h2)
+        case 3: active.insert(.h3)
+        default: break
+        }
+        if let item = ListTools.parse(line) {
+            switch item.kind {
+            case .bullet: active.insert(.bullet)
+            case .number: active.insert(.numbered)
+            case .check: active.insert(.task)
+            }
+        }
+        if line.hasPrefix("> ") || line == ">" { active.insert(.quote) }
+
+        // Dans un bloc de code : nombre impair de clôtures avant la ligne.
+        var fences = 0
+        ns.enumerateSubstrings(in: NSRange(location: 0, length: para.location), options: .byParagraphs) { s, _, _, _ in
+            if s?.trimmingCharacters(in: .whitespaces).hasPrefix("```") == true { fences += 1 }
+        }
+        if fences % 2 == 1 || line.trimmingCharacters(in: .whitespaces).hasPrefix("```") { active.insert(.codeBlock) }
+
+        let lineRange = NSRange(location: para.location, length: (line as NSString).length)
+        for (action, regex) in inlinePatterns {
+            for m in regex.matches(in: text, range: lineRange) where NSLocationInRange(loc, NSRange(location: m.range.location, length: m.range.length + 1)) {
+                active.insert(action)
+            }
+        }
+        return active
+    }
+}

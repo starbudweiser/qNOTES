@@ -44,6 +44,9 @@ private struct EmptyState: View {
             Button(L("note.new")) { model.newNote() }
                 .buttonStyle(SocleButtonStyle(.action))
                 .frame(width: 180)
+            Button(L("import.button")) { (NSApp.delegate as? AppDelegate)?.importNotes() }
+                .buttonStyle(SocleButtonStyle(.secondary))
+                .frame(width: 180)
         }
         .padding(Socle.M.space8)
     }

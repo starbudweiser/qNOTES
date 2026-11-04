@@ -113,3 +113,14 @@
 "help.tip.bullets" = "Intro continúa una lista, Tab la sangra, «[]» crea una tarea y un clic en la casilla la marca.";
 "help.tip.separator" = "Escribe «---» y Intro: la línea pasa a ser el separador de tus ajustes.";
 "help.tip.plain" = "Las etiquetas siguen visibles en gris: es texto sencillo, legible en cualquier sitio.";
+/* Import */
+"menu.import" = "Importar notas…";
+"import.title" = "Importar desde Tot";
+"import.message" = "La última copia de Tot (%@) contiene %ld notas. Se añadirán a qNOTES; Tot no se modifica.";
+"import.latest" = "Importar";
+"import.choose" = "Elegir un archivo…";
+"import.none" = "No se encontró ninguna copia de Tot. Elige una copia de Tot (.json) o archivos .md / .txt.";
+"import.panel" = "Elige una copia de Tot (.json) o archivos .md / .txt";
+"import.done" = "%ld notas importadas, %ld ya presentes";
+"import.empty" = "No hay notas que importar en estos archivos.";
+"import.button" = "Importar desde Tot";

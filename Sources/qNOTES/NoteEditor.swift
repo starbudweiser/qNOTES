@@ -11,14 +11,6 @@ final class NoteTextView: NSTextView {
         }
     }
 
-    /// Applique une modification de l'assistant Markdown (annulable avec ⌘Z) puis place la sélection.
-    func apply(_ edit: TextEdit) {
-        replace(edit.range, edit.replacement)
-        setSelectedRange(NSRange(location: min(edit.selection.location, (string as NSString).length),
-                                 length: min(edit.selection.length, max(0, (string as NSString).length - edit.selection.location))))
-        scrollRangeToVisible(selectedRange())
-    }
-
     /// Deux zones de texte peuvent coexister (fenêtre et volet de la barre de menu) : la barre de format agit sur celle qui a le focus.
     override func becomeFirstResponder() -> Bool {
         let ok = super.becomeFirstResponder()
@@ -34,7 +26,34 @@ final class NoteTextView: NSTextView {
         return (range, text)
     }
 
+    /// Collage : le texte enrichi prend la police, la taille et les couleurs neutres du réglage.
+    override func paste(_ sender: Any?) {
+        let board = NSPasteboard.general
+        var pasted: NSAttributedString?
+        if let data = board.data(forType: .rtf) { pasted = NSAttributedString(rtf: data, documentAttributes: nil) }
+        else if let data = board.data(forType: .html) { pasted = NSAttributedString(html: data, documentAttributes: nil) }
+        else if let text = board.string(forType: .string) { pasted = NSAttributedString(string: text) }
+        guard let pasted else { super.paste(sender); return }
+        let normalized = RichText.normalizedPaste(pasted, family: Prefs.family, size: Prefs.size)
+        let range = selectedRange()
+        guard shouldChangeText(in: range, replacementString: normalized.string) else { return }
+        textStorage?.replaceCharacters(in: range, with: normalized)
+        didChangeText()
+        setSelectedRange(NSRange(location: range.location + normalized.length, length: 0))
+    }
+
+    /// Après un titre, la ligne suivante revient au texte normal.
+    private func resetStyleAfterHeading(_ before: [NSAttributedString.Key: Any]) {
+        let size = (before[.font] as? NSFont)?.pointSize ?? 0
+        guard size >= Prefs.size * 1.2 else { return }
+        var attrs = typingAttributes
+        attrs[.font] = RichText.font(family: Prefs.family, size: Prefs.size)
+        typingAttributes = attrs
+    }
+
     override func insertNewline(_ sender: Any?) {
+        let before = typingAttributes
+        defer { resetStyleAfterHeading(before) }
         let sel = selectedRange()
         if sel.length == 0 {
             let (lineRange, line) = currentLine
@@ -120,8 +139,17 @@ final class NoteTextView: NSTextView {
             if let item = ListTools.parse(line), let box = item.checkboxRange, let toggled = ListTools.toggled(line) {
                 let offset = index - lineRange.location
                 if offset >= box.lowerBound, offset <= box.upperBound {
-                    let position = lineRange.location + box.lowerBound + 1
-                    replace(NSRange(location: position, length: 1), String(Array(toggled)[box.lowerBound + 1]))
+                    let boxRange = NSRange(location: lineRange.location + box.lowerBound, length: box.count)
+                    let newBox = String(Array(toggled)[box])
+                    guard shouldChangeText(in: boxRange, replacementString: newBox) else { return }
+                    textStorage?.replaceCharacters(in: boxRange, with: newBox)
+                    // Tâche faite : texte barré.
+                    let content = NSRange(location: lineRange.location + item.markerLength, length: max(0, lineRange.length - item.markerLength - (ns.substring(with: lineRange).hasSuffix("\n") ? 1 : 0)))
+                    if content.length > 0 {
+                        if newBox == "☑" { textStorage?.addAttribute(.strikethroughStyle, value: NSUnderlineStyle.single.rawValue, range: content) }
+                        else { textStorage?.removeAttribute(.strikethroughStyle, range: content) }
+                    }
+                    didChangeText()
                     return
                 }
             }
@@ -130,14 +158,14 @@ final class NoteTextView: NSTextView {
     }
 }
 
-/// NSTextView dans un NSScrollView, relié à une note du magasin.
+/// NSTextView dans un NSScrollView, relié à une note du magasin. Le texte est enrichi : la note est enregistrée en RTF.
 struct NoteEditor: NSViewRepresentable {
     let noteID: UUID
     let text: String
+    let rtf: Data?
     let fontSize: Double
-    let separator: String
-    let layout: Bool
-    let onChange: (String) -> Void
+    let fontFamily: String
+    let onChange: (String, Data) -> Void
     let onSelection: (String) -> Void
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
@@ -150,12 +178,15 @@ struct NoteEditor: NSViewRepresentable {
         scroll.autohidesScrollers = true
 
         let view = NoteTextView()
-        view.isRichText = false          // le texte reste du Markdown brut ; la mise en forme est un affichage
+        view.isRichText = true
+        view.importsGraphics = false
+        view.usesFontPanel = false
+        view.usesRuler = false
         view.allowsUndo = true
         view.isAutomaticQuoteSubstitutionEnabled = false
         view.isAutomaticDashSubstitutionEnabled = false
         view.isAutomaticTextReplacementEnabled = false
-        view.isAutomaticLinkDetectionEnabled = false
+        view.isAutomaticLinkDetectionEnabled = true
         view.usesFindBar = true
         view.isIncrementalSearchingEnabled = true
         view.drawsBackground = false
@@ -172,13 +203,13 @@ struct NoteEditor: NSViewRepresentable {
         scroll.documentView = view
         context.coordinator.textView = view
         EditorController.shared.textView = view
-        context.coordinator.load(noteID: noteID, text: text)
+        context.coordinator.load(noteID: noteID, text: text, rtf: rtf)
         return scroll
     }
 
     func updateNSView(_ scroll: NSScrollView, context: Context) {
         context.coordinator.parent = self
-        context.coordinator.load(noteID: noteID, text: text)
+        context.coordinator.load(noteID: noteID, text: text, rtf: rtf)
     }
 
     @MainActor
@@ -186,54 +217,63 @@ struct NoteEditor: NSViewRepresentable {
         var parent: NoteEditor
         weak var textView: NoteTextView?
         private var loadedID: UUID?
-        private var styledSize: Double = 0
-        private var styledSeparator = ""
-        private var styledLayout = true
-        private var lastActive = NSRange(location: NSNotFound, length: 0)
+        /// Contenu de la note tel que la zone de texte le connaît : tant qu'il ne change pas, on ne recharge pas.
+        private var knownText = ""
+        private var knownRTF: Data?
+        private var appliedSize: CGFloat = RichText.reference
+        private var appliedFamily = ""
         private var mini: NSHostingView<MiniToolbar>?
 
         init(_ parent: NoteEditor) { self.parent = parent }
 
-        func load(noteID: UUID, text: String) {
+        func load(noteID: UUID, text: String, rtf: Data?) {
             guard let view = textView, let storage = view.textStorage else { return }
+            let family = parent.fontFamily
+            let size = CGFloat(parent.fontSize)
             let switched = loadedID != noteID
-            if switched || view.string != text {
+            if switched || text != knownText || rtf != knownRTF {
                 let selection = view.selectedRange()
+                let source = rtf.map { RichText.attributed(rtf: $0) } ?? RichText.attributed(markdown: text)
                 isLoading = true
-                view.string = text
+                storage.setAttributedString(RichText.display(source, family: family, size: size))
+                view.typingAttributes = RichText.defaults(family: family, size: size)
                 isLoading = false
+                appliedSize = size
+                appliedFamily = family
+                knownText = text
+                knownRTF = rtf
+                loadedID = noteID
                 if switched {
                     view.setSelectedRange(NSRange(location: 0, length: 0))
                     view.undoManager?.removeAllActions()
                     view.scrollToBeginningOfDocument(nil)
                 } else {
-                    view.setSelectedRange(NSRange(location: min(selection.location, (text as NSString).length), length: 0))
+                    view.setSelectedRange(NSRange(location: min(selection.location, storage.length), length: 0))
                 }
-                loadedID = noteID
-                restyle(storage)
-            } else if styledSize != parent.fontSize || styledSeparator != parent.separator || styledLayout != parent.layout {
-                restyle(storage)
+                if switched, storage.length == 0 { view.window?.makeFirstResponder(view) }
+            } else if appliedSize != size || appliedFamily != family {
+                isLoading = true
+                RichText.restyle(storage, family: family, scale: size / appliedSize)
+                var attrs = view.typingAttributes
+                attrs[.font] = RichText.font(family: family, size: size)
+                view.typingAttributes = attrs
+                isLoading = false
+                appliedSize = size
+                appliedFamily = family
             }
-            if switched, text.isEmpty { view.window?.makeFirstResponder(view) }
         }
 
         private var isLoading = false
 
-        private func restyle(_ storage: NSTextStorage) {
-            styledSize = parent.fontSize
-            styledSeparator = parent.separator
-            styledLayout = parent.layout
-            let active = textView?.selectedRange() ?? NSRange(location: 0, length: 0)
-            lastActive = (storage.string as NSString).paragraphRange(for: active)
-            MarkdownStyler.apply(to: storage, fontSize: CGFloat(parent.fontSize), separator: parent.separator,
-                                 hideMarkers: parent.layout, active: active)
-            textView?.typingAttributes = [.font: NSFont.systemFont(ofSize: CGFloat(parent.fontSize)), .foregroundColor: NSColor(Socle.C.text)]
-        }
-
         func textDidChange(_ notification: Notification) {
             guard !isLoading, let view = textView, let storage = view.textStorage else { return }
-            if !view.hasMarkedText() { restyle(storage) }
-            parent.onChange(view.string)
+            let ns = view.string as NSString
+            RichText.fixLists(storage, in: ns.paragraphRange(for: NSRange(location: min(view.selectedRange().location, ns.length), length: 0)))
+            let plain = view.string
+            let data = RichText.rtf(from: storage, appliedSize: appliedSize)
+            knownText = plain
+            knownRTF = data
+            parent.onChange(plain, data)
             refreshActive()
             hideMini()
         }
@@ -241,11 +281,6 @@ struct NoteEditor: NSViewRepresentable {
         func textViewDidChangeSelection(_ notification: Notification) {
             guard let view = textView else { return }
             let range = view.selectedRange()
-            // Mise en page : la ligne active change, donc les balises affichées aussi.
-            if parent.layout, !view.hasMarkedText(), let storage = view.textStorage {
-                let para = (view.string as NSString).paragraphRange(for: range)
-                if para != lastActive || range.length > 0 { restyle(storage) }
-            }
             refreshActive()
             view.onSelectionSettled = { [weak self] in self?.showMini() }
             if range.length == 0 { hideMini() } else if NSEvent.pressedMouseButtons == 0 { showMini() }
@@ -253,8 +288,7 @@ struct NoteEditor: NSViewRepresentable {
         }
 
         private func refreshActive() {
-            guard let view = textView else { return }
-            EditorController.shared.active = MarkdownAssistant.activeActions(in: view.string, selection: view.selectedRange())
+            if EditorController.shared.textView === textView { EditorController.shared.refresh() }
         }
 
         // MARK: Mini-barre près de la sélection

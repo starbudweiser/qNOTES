@@ -22,7 +22,7 @@ import Testing
         #expect(ListTools.bulletSubstitution(beforeCursor: "-", glyph: "•") == "• ")
         #expect(ListTools.bulletSubstitution(beforeCursor: "  *", glyph: "▸") == "  ▸ ")
         #expect(ListTools.bulletSubstitution(beforeCursor: "-", glyph: "-") == nil)
-        #expect(ListTools.bulletSubstitution(beforeCursor: "[]", glyph: "•") == "• [ ] ")
+        #expect(ListTools.bulletSubstitution(beforeCursor: "[]", glyph: "•") == "☐ ")
         #expect(ListTools.bulletSubstitution(beforeCursor: "a -", glyph: "•") == nil)
     }
 

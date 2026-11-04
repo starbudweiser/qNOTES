@@ -44,6 +44,6 @@ final class AppModel: ObservableObject {
 
     func duplicate(_ id: UUID) {
         guard let n = store.note(id) else { return }
-        selectedID = store.create(text: n.text).id
+        selectedID = store.create(text: n.text, rtf: n.rtf).id
     }
 }

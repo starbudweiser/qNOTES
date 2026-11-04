@@ -13,7 +13,7 @@ enum Prefs {
     static let syncICloud = "syncICloud"
     static let autoUpdate = "autoUpdate"
     static let theme = "theme"
-    static let layoutMode = "layoutMode"
+    static let fontFamily = "fontFamily"
 
     static let displayMode = "displayMode"
     static let hotkeyEnabled = "hotkeyEnabled"
@@ -27,12 +27,13 @@ enum Prefs {
 
     static var size: CGFloat { CGFloat(defaults.object(forKey: fontSize) as? Double ?? defaultFontSize) }
     static var smart: Bool { defaults.object(forKey: smartBullets) as? Bool ?? true }
-    static var glyph: String { defaults.string(forKey: bulletGlyph) ?? "-" }
+    static var glyph: String { defaults.string(forKey: bulletGlyph) ?? "•" }
+    /// Famille de police des notes (vide : police du système).
+    static var family: String { defaults.string(forKey: fontFamily) ?? "" }
     static var separatorText: String { defaults.string(forKey: separator) ?? Separators.presets[0] }
     static var backups: Bool { defaults.object(forKey: backupEnabled) as? Bool ?? true }
     static var keep: Int { defaults.object(forKey: backupKeep) as? Int ?? 30 }
     static var hours: Int { defaults.object(forKey: backupHours) as? Int ?? 1 }
-    static var layout: Bool { defaults.object(forKey: layoutMode) as? Bool ?? true }
     static var display: String {
         let value = defaults.string(forKey: displayMode) ?? "both"
         return displayModes.contains(value) ? value : "both"

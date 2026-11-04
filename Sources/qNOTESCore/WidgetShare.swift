@@ -39,7 +39,7 @@ public enum WidgetShare {
             var lines: [String] = []
             var seenTitle = false
             for raw in note.text.split(separator: "\n", omittingEmptySubsequences: true) {
-                guard let s = Note.plain(raw) else { continue }
+                guard let s = Note.plain(raw, markdown: note.rtf == nil) else { continue }
                 if !seenTitle { seenTitle = true; continue }
                 lines.append(String(s.prefix(120)))
                 if lines.count >= 8 { break }

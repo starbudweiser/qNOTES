@@ -177,7 +177,7 @@ final class MenuBarController: NSObject, NSWindowDelegate {
 
 // MARK: Volet
 
-private let dotColors: [Color] = MarkdownAssistant.palette.map { Color(hex: $0) }
+private let dotColors: [Color] = RichText.palette.map { Color(hex: $0) }
 
 struct QuickView: View {
     @ObservedObject var model: AppModel
@@ -188,8 +188,7 @@ struct QuickView: View {
     @State private var resizing = false
     @State private var selection = ""
     @AppStorage(Prefs.fontSize) private var fontSize = Prefs.defaultFontSize
-    @AppStorage(Prefs.separator) private var separator = Separators.presets[0]
-    @AppStorage(Prefs.layoutMode) private var layout = true
+    @AppStorage(Prefs.fontFamily) private var fontFamily = ""
 
     var body: some View {
         let note = model.selectedID.flatMap { store.note($0) }
@@ -214,8 +213,8 @@ struct QuickView: View {
             .padding(.horizontal, Socle.M.space3).padding(.vertical, Socle.M.space2)
             Rectangle().fill(Socle.C.border).frame(height: 1)
             if let note {
-                NoteEditor(noteID: note.id, text: note.text, fontSize: fontSize, separator: separator, layout: layout,
-                           onChange: { store.update(id: note.id, text: $0) },
+                NoteEditor(noteID: note.id, text: note.text, rtf: note.rtf, fontSize: fontSize, fontFamily: fontFamily,
+                           onChange: { store.update(id: note.id, text: $0, rtf: $1) },
                            onSelection: { selection = $0 })
             } else {
                 Spacer()

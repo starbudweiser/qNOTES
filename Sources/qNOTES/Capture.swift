@@ -37,14 +37,6 @@ enum Capture {
         render(view, size: NSSize(width: 440, height: 520), path)
     }
 
-    static func help(_ delegate: AppDelegate, _ path: String) {
-        let view = NSHostingView(rootView: MarkdownHelp(controller: EditorController.shared))
-        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 380, height: 520), styleMask: [.borderless], backing: .buffered, defer: false)
-        window.appearance = NSAppearance(named: .darkAqua)
-        window.contentView = view
-        render(view, size: NSSize(width: 380, height: 520), path)
-    }
-
     static func about(_ delegate: AppDelegate, _ path: String) {
         let window = About.makeWindow()
         window.appearance = NSAppearance(named: .darkAqua)

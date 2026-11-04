@@ -15,7 +15,8 @@ struct SettingsView: View {
     let actions: SettingsActions
     @AppStorage(Prefs.fontSize) private var fontSize = Prefs.defaultFontSize
     @AppStorage(Prefs.smartBullets) private var smart = true
-    @AppStorage(Prefs.bulletGlyph) private var glyph = "-"
+    @AppStorage(Prefs.bulletGlyph) private var glyph = "•"
+    @AppStorage(Prefs.fontFamily) private var fontFamily = ""
     @AppStorage(Prefs.separator) private var separator = Separators.presets[0]
     @AppStorage(Prefs.syncICloud) private var sync = false
     @AppStorage(Prefs.backupEnabled) private var backupOn = true
@@ -41,9 +42,15 @@ struct SettingsView: View {
                     toggle(L("set.login"), Binding(get: { login }, set: { setLogin($0) }))
                 }
                 section(L("set.writing")) {
+                    row(L("set.font")) { FontPickerButton(family: $fontFamily) }
                     row(L("set.fontsize")) {
                         SocleSegmented(options: [14.0, 16.0, 18.0, 20.0], selection: fontSize, label: { "\(Int($0))" }) { fontSize = $0 }
                     }
+                    Text(L("set.font.sample"))
+                        .font(Font(RichText.font(family: fontFamily, size: fontSize) as CTFont))
+                        .foregroundStyle(Socle.C.text)
+                        .padding(Socle.M.space3).frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Socle.C.bgSunken, in: RoundedRectangle(cornerRadius: Socle.M.radius))
                 }
                 section(L("set.lists")) {
                     toggle(L("set.smart"), $smart)

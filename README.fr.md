@@ -2,15 +2,15 @@
 
 [English](README.md)
 
-Bloc-notes Markdown personnel pour macOS, inspiré de Tot (The Iconfactory), sans lien avec ses auteurs.
+Bloc-notes personnel en texte enrichi pour macOS, inspiré de Tot (The Iconfactory), sans lien avec ses auteurs.
 
 ## Fonctions
 
-- **Notes illimitées en Markdown**, affichées avec la mise en forme en direct : titres, gras, italique, barré, code, citations, liens, tâches.
+- **Notes illimitées en texte enrichi** : titres, gras, italique, souligné, barré, couleurs, alignement, listes à puces / numérotées / de tâches, liens. Les notes sont enregistrées en RTF avec un miroir en texte simple.
 - **Import depuis Tot** : Fichier > Importer des notes… lit la dernière sauvegarde de Tot (Tot n'est pas modifié) ou tout fichier `.json`, `.md`, `.txt` ; les dates sont conservées, aucun doublon.
-- **Mode Mise en page** : les balises sont masquées hors de la ligne en cours, on voit le résultat ; une mini-barre flottante apparaît au-dessus du texte sélectionné, et les boutons de la barre s'allument selon le style sous le curseur.
-- **Assistant Markdown** : barre de format, menu Format avec raccourcis (⌘B, ⌘I, ⌘K…) et aide qui liste chaque balise ; un clic sur une ligne l'applique à la sélection, un second clic la retire.
-- **Puces intelligentes** : Retour continue la liste, une puce vide la termine, Tab et Maj-Tab décalent, `[]` crée une tâche, un clic sur `[ ]` la coche. La puce se choisit dans les réglages.
+- **Choix de la police** : Réglages > Écriture permet de choisir la police (toute famille installée, aperçue dans sa propre police) et la taille du texte pour toutes les notes.
+- **Outils de mise en page classiques** : barre d'outils, menu Format avec les raccourcis habituels (⌘B, ⌘I, ⌘U, ⌘K…) et mini-barre flottante au-dessus du texte sélectionné ; les boutons s'allument selon le style sous le curseur. Les anciennes notes Markdown sont converties à l'ouverture.
+- **Puces intelligentes** : Retour continue la liste, une puce vide la termine, Tab et Maj-Tab décalent, `[]` crée une tâche, un clic sur sa case la coche. La puce se choisit dans les réglages.
 - **Séparateurs personnalisés** : `---` puis Retour donne le séparateur choisi (ou le vôtre).
 - **Compteur de mots et de caractères**, pour la note ou la sélection.
 - **Synchro iCloud Drive** : les notes sont dans `iCloud Drive/qNOTES`, un fichier par note, la modification la plus récente gagne.

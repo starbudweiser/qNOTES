@@ -137,8 +137,8 @@ public final class NoteStore: ObservableObject {
     // MARK: Écriture
 
     @discardableResult
-    public func create(text: String = "") -> Note {
-        let note = Note(text: text)
+    public func create(text: String = "", rtf: Data? = nil) -> Note {
+        let note = Note(text: text, rtf: rtf)
         publish(notes + [note])
         markDirty(note.id)
         return note
@@ -150,11 +150,12 @@ public final class NoteStore: ObservableObject {
         markDirty(note.id)
     }
 
-    /// Modification du texte : prise en compte tout de suite, écriture disque différée.
-    public func update(id: UUID, text: String) {
-        guard let index = notes.firstIndex(where: { $0.id == id }), notes[index].text != text else { return }
+    /// Modification du texte : prise en compte tout de suite, écriture disque différée. `rtf` : la mise en forme (nil : texte simple).
+    public func update(id: UUID, text: String, rtf: Data? = nil) {
+        guard let index = notes.firstIndex(where: { $0.id == id }), notes[index].text != text || notes[index].rtf != rtf else { return }
         var list = notes
         list[index].text = text
+        list[index].rtf = rtf
         list[index].modified = Date()
         publish(list)
         markDirty(id)
@@ -182,7 +183,9 @@ public final class NoteStore: ObservableObject {
     public func append(id: UUID, text: String) {
         guard let note = note(id) else { return }
         let separator = note.text.isEmpty || note.text.hasSuffix("\n") ? "" : "\n"
-        update(id: id, text: note.text + separator + text)
+        var rtf: Data?
+        if let current = note.rtf { rtf = RTFAppend.append(text: separator.isEmpty ? text : "\n" + text, to: current) }
+        update(id: id, text: note.text + separator + text, rtf: rtf)
     }
 
     private func markDirty(_ id: UUID) {

@@ -87,7 +87,7 @@ private struct Sidebar: View {
                                 .contextMenu {
                                     Button(note.pinned ? L("note.unpin") : L("note.pin")) { store.setPinned(id: note.id, !note.pinned) }
                                     Button(L("note.duplicate")) { model.duplicate(note.id) }
-                                    Button(L("note.copymd")) { copy(note.text) }
+                                    Button(L("note.copy")) { copy(note) }
                                     Divider()
                                     Button(L("note.delete"), role: .destructive) { model.requestDelete(note.id) }
                                 }
@@ -105,9 +105,10 @@ private struct Sidebar: View {
         .background(Socle.C.surfaceRaised)
     }
 
-    private func copy(_ text: String) {
+    private func copy(_ note: Note) {
         NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(text, forType: .string)
+        NSPasteboard.general.setData(RichText.rtf(of: note), forType: .rtf)
+        NSPasteboard.general.setString(note.text, forType: .string)
     }
 }
 
@@ -156,16 +157,15 @@ private struct EditorPane: View {
     let noteID: UUID
     @State private var selection = ""
     @AppStorage(Prefs.fontSize) private var fontSize = Prefs.defaultFontSize
-    @AppStorage(Prefs.separator) private var separator = Separators.presets[0]
-    @AppStorage(Prefs.layoutMode) private var layout = true
+    @AppStorage(Prefs.fontFamily) private var fontFamily = ""
 
     var body: some View {
         let note = store.note(noteID)
         VStack(spacing: 0) {
             FormatBar()
             Rectangle().fill(Socle.C.border).frame(height: 1)
-            NoteEditor(noteID: noteID, text: note?.text ?? "", fontSize: fontSize, separator: separator, layout: layout,
-                       onChange: { store.update(id: noteID, text: $0) },
+            NoteEditor(noteID: noteID, text: note?.text ?? "", rtf: note?.rtf, fontSize: fontSize, fontFamily: fontFamily,
+                       onChange: { store.update(id: noteID, text: $0, rtf: $1) },
                        onSelection: { selection = $0 })
             Rectangle().fill(Socle.C.border).frame(height: 1)
             HStack(spacing: Socle.M.space3) {
@@ -174,8 +174,6 @@ private struct EditorPane: View {
                      + L("count.words", counts.words) + " · " + L("count.chars", counts.characters))
                     .socle(Socle.T.meta).foregroundStyle(Socle.C.textSubtle)
                 Spacer()
-                SocleSegmented(options: [true, false], selection: layout, label: { $0 ? L("mode.layout") : L("mode.markdown") }) { layout = $0 }
-                    .help(L("mode.help"))
                 if let note {
                     Text(L("note.modified", note.modified.formatted(date: .abbreviated, time: .shortened)))
                         .socle(Socle.T.meta).foregroundStyle(Socle.C.textSubtle)

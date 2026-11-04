@@ -159,9 +159,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     @objc func exportNote() {
         guard let id = model.selectedID, let note = store.note(id) else { return }
         let panel = NSSavePanel()
-        panel.allowedContentTypes = [UTType(filenameExtension: "md") ?? .plainText]
-        panel.nameFieldStringValue = (note.title.isEmpty ? L("note.untitled") : note.title).replacingOccurrences(of: "/", with: "-") + ".md"
-        if panel.runModal() == .OK, let url = panel.url { try? note.text.write(to: url, atomically: true, encoding: .utf8) }
+        panel.allowedContentTypes = [.rtf]
+        panel.nameFieldStringValue = (note.title.isEmpty ? L("note.untitled") : note.title).replacingOccurrences(of: "/", with: "-") + ".rtf"
+        if panel.runModal() == .OK, let url = panel.url { try? RichText.rtf(of: note).write(to: url) }
     }
 
     // MARK: Import
@@ -226,39 +226,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     @objc func formatAction(_ sender: NSMenuItem) {
-        guard let raw = sender.representedObject as? String, let action = MarkdownAction(rawValue: raw) else { return }
+        guard let raw = sender.representedObject as? String, let action = FormatAction(rawValue: raw) else { return }
         EditorController.shared.apply(action)
     }
 
     private func formatItems() -> [NSMenuItem] {
-        let keys: [(MarkdownAction, String, NSEvent.ModifierFlags)] = [
-            (.h1, "1", .command), (.h2, "2", .command), (.h3, "3", .command),
-            (.bold, "b", .command), (.italic, "i", .command), (.strike, "x", [.command, .shift]),
-            (.code, "c", [.command, .option]), (.link, "k", .command),
+        let keys: [(FormatAction, String, NSEvent.ModifierFlags)] = [
+            (.title, "1", .command), (.subtitle, "2", .command), (.body, "0", .command),
+            (.bold, "b", .command), (.italic, "i", .command), (.underline, "u", .command), (.strike, "x", [.command, .shift]),
+            (.alignLeft, "{", .command), (.alignCenter, "|", .command), (.alignRight, "}", .command),
             (.bullet, "8", [.command, .shift]), (.numbered, "7", [.command, .shift]), (.task, "t", [.command, .shift]),
-            (.quote, "9", [.command, .shift]), (.codeBlock, "", .command), (.separator, "", .command),
+            (.link, "k", .command), (.separator, "", .command),
         ]
         var items: [NSMenuItem] = []
         for (action, key, mods) in keys {
-            let i = item(MarkdownLabels.name(action), #selector(formatAction(_:)), key, mods, target: self)
+            let i = item(FormatLabels.name(action), #selector(formatAction(_:)), key, mods, target: self)
             i.representedObject = action.rawValue
             items.append(i)
-            if action == .link || action == .quote { items.append(.separator()) }
+            if action == .body || action == .strike || action == .alignRight || action == .task { items.append(.separator()) }
         }
-        items.append(.separator())
-        items.append(item(L("mode.toggle"), #selector(toggleLayout), "m", [.command, .shift], target: self))
-        let help = item(L("md.help.title"), #selector(showMarkdownHelp), "/", [.command, .shift], target: self)
-        items.append(help)
         return items
-    }
-
-    @objc func toggleLayout() {
-        Prefs.defaults.set(!Prefs.layout, forKey: Prefs.layoutMode)
-    }
-
-    @objc func showMarkdownHelp() {
-        showMainWindow()
-        EditorController.shared.showHelp()
     }
 
     // MARK: Menus

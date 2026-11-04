@@ -29,6 +29,11 @@ public enum ListTools {
         let indent = String(chars[0..<i])
         guard i < chars.count else { return nil }
         let c = chars[i]
+        // Case à cocher en texte enrichi : « ☐ » ou « ☑ » suivi d'une espace.
+        if c == "☐" || c == "☑", i + 1 < chars.count, chars[i + 1] == " " {
+            return Item(indent: indent, kind: .check(c, done: c == "☑"), markerLength: i + 2,
+                        content: String(chars[(i + 2)...]), checkboxRange: i..<(i + 1))
+        }
         if bulletSet.contains(c), i + 1 < chars.count, chars[i + 1] == " " {
             var j = i + 2
             // Tâche : « [ ] » ou « [x] » juste après la puce.
@@ -73,7 +78,7 @@ public enum ListTools {
     static func nextMarker(_ item: Item, glyph: String) -> String {
         switch item.kind {
         case .bullet(let c): return String(c) + " "
-        case .check(let c, _): return String(c) + " [ ] "
+        case .check(let c, _): return c == "☐" || c == "☑" ? "☐ " : String(c) + " [ ] "
         case .number(let n, let sep): return "\(n + 1)\(sep) "
         }
     }
@@ -86,7 +91,7 @@ public enum ListTools {
         if trimmed == "-" || trimmed == "*" || trimmed == "+" {
             return glyph == String(trimmed) ? nil : String(indent) + glyph + " "
         }
-        if trimmed == "[]" || trimmed == "[ ]" { return String(indent) + glyph + " [ ] " }
+        if trimmed == "[]" || trimmed == "[ ]" { return String(indent) + "☐ " }
         return nil
     }
 
@@ -94,8 +99,38 @@ public enum ListTools {
     public static func toggled(_ line: String) -> String? {
         guard let item = parse(line), case .check(_, let done) = item.kind, let box = item.checkboxRange else { return nil }
         var chars = Array(line)
-        chars[box.lowerBound + 1] = done ? " " : "x"
+        if box.count == 1 { chars[box.lowerBound] = done ? "☐" : "☑" } else { chars[box.lowerBound + 1] = done ? " " : "x" }
         return String(chars)
+    }
+
+    public enum Style: Equatable, Sendable { case bullet, numbered, task }
+
+    /// Barre d'outils : met les lignes en liste du style demandé, ou les en retire si elles y sont toutes déjà.
+    /// Les lignes vides sont ignorées, sauf s'il n'y en a qu'une.
+    public static func toggle(_ style: Style, lines: [String], glyph: String) -> [String] {
+        func matches(_ item: Item?) -> Bool {
+            guard let item else { return false }
+            switch (style, item.kind) {
+            case (.bullet, .bullet), (.numbered, .number), (.task, .check): return true
+            default: return false
+            }
+        }
+        let target = lines.indices.filter { lines.count == 1 || !lines[$0].trimmingCharacters(in: .whitespaces).isEmpty }
+        let remove = !target.isEmpty && target.allSatisfy { matches(parse(lines[$0])) }
+        var out = lines
+        var number = 1
+        for index in target {
+            let item = parse(lines[index])
+            let indent = item?.indent ?? String(lines[index].prefix(while: { $0 == " " || $0 == "\t" }))
+            let content = item?.content ?? String(lines[index].dropFirst(indent.count))
+            if remove { out[index] = indent + content; continue }
+            switch style {
+            case .bullet: out[index] = indent + glyph + " " + content
+            case .numbered: out[index] = indent + "\(number). " + content; number += 1
+            case .task: out[index] = indent + "☐ " + content
+            }
+        }
+        return out
     }
 
     public static func indented(_ line: String) -> String { "  " + line }

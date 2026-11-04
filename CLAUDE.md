@@ -1,6 +1,6 @@
 # qNOTES
 
-Version personnelle d'un bloc-notes à la Tot (The Iconfactory) avec les fonctions premium : notes Markdown illimitées,
+Version personnelle d'un bloc-notes à la Tot (The Iconfactory) avec les fonctions premium : notes en texte enrichi illimitées,
 puces intelligentes, séparateurs personnalisés, synchro iCloud Drive, sauvegardes automatiques, actions Raccourcis,
 compteur de mots, widgets. Swift/SwiftUI + AppKit (NSTextView), sans bac à sable. Code écrit de zéro : rien de Tot n'est repris.
 
@@ -12,9 +12,9 @@ compteur de mots, widgets. Swift/SwiftUI + AppKit (NSTextView), sans bac à sabl
   `~/Library/Mobile Documents/com~apple~CloudDocs/qNOTES`. Sauvegardes : `…/qNOTES/Backups`. `QNOTES_DATA_DIR` et
   `QNOTES_ICLOUD_DIR` redirigent pour les essais.
 - Ne jamais comparer des chemins de fichiers dans NoteStore (liens symboliques) : comparer les noms (une perte de données est déjà arrivée).
-- Assistant Markdown : logique pure dans `qNOTESCore/MarkdownAssistant.swift` (testée), branchée par `MarkdownAssist.swift` (barre, aide, menu Format).
+- Texte enrichi : une note = `rtf` (RTF à 16 pt, sans couleur de texte par défaut ni police du réglage) + `text` (miroir en texte simple : titre, recherche, widget, Raccourcis). `RichText.swift` : `display` applique police/taille/couleur du thème, `rtf(from:)` fait le chemin inverse, `normalizedPaste` nettoie les collages. Mise en forme : `Formatting.swift` (extension de `NoteTextView`, passe par shouldChangeText), barre/mini-barre/menu : `FormatBar.swift`. Listes = préfixes en texte (« • », « 1. », « ☐ ») gérés par `ListTools`, retrait suspendu par `RichText.fixLists`.
 - Import : `qNOTESCore/Importer.swift` (sauvegardes JSON de Tot, lues dans `~/Library/Containers/com.iconfactory.Tot/…/Backups`, `QNOTES_TOT_DIR` pour les essais ; fichiers .md/.txt) ; `qNOTES --import <fichier>` en terminal.
-- Mode Mise en page : `MarkdownStyler` masque les balises (police de 1 pt, transparente) sauf sur la ligne active ; mini-barre = sous-vue de la zone de texte (`NoteEditor.Coordinator.showMini`). `QNOTES_CAPTURE_SELECT="début,longueur"` la montre en capture.
+- Anciennes notes Markdown (sans `rtf`) : converties à l'ouverture par `qNOTESCore/RichImport.swift` (testé) + `RichText.attributed(markdown:)`, enregistrées au premier changement. Police des notes : réglage `fontFamily` (`FontPicker.swift`), vide = police du système. Mini-barre = sous-vue de la zone de texte (`NoteEditor.Coordinator.showMini`). `QNOTES_CAPTURE_SELECT="début,longueur"` la montre en capture.
 - Barre de menu : `MenuBar.swift` (`MenuBarController` = NSStatusItem + NSPopover, `QuickView`, `HotKey` Carbon ⌃⌥N). Réglage `displayMode` (both/menubar/dock) appliqué en direct par `AppDelegate.applyDisplay` (menubar = politique .accessory, pas de fenêtre au lancement). `EditorController.shared.textView` suit la zone de texte qui a le focus. `--capture-popover f.png` pour le volet.
 - Widget : cible `Sources/qNOTESWidget` (WidgetKit, point d'entrée `_NSExtensionMain` via `unsafeFlags`), empaquetée par `build_app.sh` dans
   `Contents/PlugIns/qNOTESWidget.appex` (bac à sable + groupe `35KLMK53PN.fr.stephan.qnotes`, droits dans `assets/*.entitlements`, signés par un
@@ -22,5 +22,5 @@ compteur de mots, widgets. Swift/SwiftUI + AppKit (NSTextView), sans bac à sabl
   `qNOTES --push-widget` le fait sans fenêtre. Clic = lien `qnotes://note/<id>`.
   À FAIRE avant la première release : `_tools/notarize_app.sh` signe tout exécutable avec `entitlements_release.plist` (sans bac à sable) : l'extension
   doit garder `assets/widget.entitlements` et l'appli `assets/app.entitlements`, sinon le widget ne se charge pas.
-- Essais sans fenêtre : `qNOTES --selftest` (comportement de la zone de texte), `qNOTES --capture f.png`, `--capture-settings f.png`, `--capture-about f.png`.
+- Essais sans fenêtre : `qNOTES --selftest` (comportement de la zone de texte), `qNOTES --capture f.png`, `--capture-settings f.png`, `--capture-about f.png`, `--capture-popover f.png`.
 - Build et installation (dans ~/Applications/Applications Personnelles) : `./build_app.sh`. Publier : `scripts/release.sh <version>`.

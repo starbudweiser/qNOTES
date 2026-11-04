@@ -29,6 +29,7 @@ final class MenuBarController: NSObject, NSWindowDelegate {
     private var resizeStart: (mouse: NSPoint, frame: NSRect)?
     var openApp: () -> Void = {}
     var openSettings: () -> Void = {}
+    var openAbout: () -> Void = {}
 
     init(model: AppModel, store: NoteStore) {
         self.model = model
@@ -175,6 +176,7 @@ final class MenuBarController: NSObject, NSWindowDelegate {
         add(L("menubar.open"), #selector(menuOpen))
         add(L("note.new"), #selector(menuNew))
         add(L("menu.settings"), #selector(menuSettings))
+        add(L("about.menu"), #selector(menuAbout))
         menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: L("menu.quit"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: ""))
         item?.menu = menu
@@ -185,6 +187,7 @@ final class MenuBarController: NSObject, NSWindowDelegate {
     @objc private func menuOpen() { openApp() }
     @objc private func menuNew() { model.newNote(); show() }
     @objc private func menuSettings() { openSettings() }
+    @objc private func menuAbout() { openAbout() }
 }
 
 // MARK: Volet

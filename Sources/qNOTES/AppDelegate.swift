@@ -48,6 +48,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         let bar = MenuBarController(model: model, store: store)
         bar.openApp = { [weak self] in self?.showMainWindow() }
         bar.openSettings = { [weak self] in self?.showSettings() }
+        bar.openAbout = { [weak self] in self?.showAbout() }
         menuBar = bar
         hotKey = HotKey { [weak self] in
             guard let self else { return }

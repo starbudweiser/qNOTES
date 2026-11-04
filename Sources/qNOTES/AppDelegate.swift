@@ -28,7 +28,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         updates.configure(repo: "qNOTES", lang: { Bundle.main.preferredLocalizations.first ?? "en" })
         updates.autoCheck = { Prefs.defaults.object(forKey: Prefs.autoUpdate) as? Bool ?? true }
         updates.start()
-        if !CommandLine.arguments.contains(where: { $0.hasPrefix("--capture") }) { showMainWindow() }
+    }
+
+    private var shownOnActivation = false
+
+    /// La fenêtre s'ouvre quand l'appli devient active (lancement par l'utilisateur), pas quand Raccourcis la lance en arrière-plan.
+    func applicationDidBecomeActive(_ notification: Notification) {
+        guard !shownOnActivation else { return }
+        shownOnActivation = true
+        if window == nil, !NSApp.windows.contains(where: { $0.isVisible }) { showMainWindow() }
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
@@ -119,6 +127,37 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         }
     }
 
+    @objc func formatAction(_ sender: NSMenuItem) {
+        guard let raw = sender.representedObject as? String, let action = MarkdownAction(rawValue: raw) else { return }
+        EditorController.shared.apply(action)
+    }
+
+    private func formatItems() -> [NSMenuItem] {
+        let keys: [(MarkdownAction, String, NSEvent.ModifierFlags)] = [
+            (.h1, "1", .command), (.h2, "2", .command), (.h3, "3", .command),
+            (.bold, "b", .command), (.italic, "i", .command), (.strike, "x", [.command, .shift]),
+            (.code, "c", [.command, .option]), (.link, "k", .command),
+            (.bullet, "8", [.command, .shift]), (.numbered, "7", [.command, .shift]), (.task, "t", [.command, .shift]),
+            (.quote, "9", [.command, .shift]), (.codeBlock, "", .command), (.separator, "", .command),
+        ]
+        var items: [NSMenuItem] = []
+        for (action, key, mods) in keys {
+            let i = item(MarkdownLabels.name(action), #selector(formatAction(_:)), key, mods, target: self)
+            i.representedObject = action.rawValue
+            items.append(i)
+            if action == .link || action == .quote { items.append(.separator()) }
+        }
+        items.append(.separator())
+        let help = item(L("md.help.title"), #selector(showMarkdownHelp), "/", [.command, .shift], target: self)
+        items.append(help)
+        return items
+    }
+
+    @objc func showMarkdownHelp() {
+        showMainWindow()
+        EditorController.shared.showHelp()
+    }
+
     // MARK: Menus
 
     private func item(_ title: String, _ action: Selector?, _ key: String = "", _ mods: NSEvent.ModifierFlags = .command, target: AnyObject? = nil) -> NSMenuItem {
@@ -171,6 +210,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             item(L("menu.find"), #selector(NSResponder.performTextFinderAction(_:)), "f").tagged(1),
             item(L("menu.search"), #selector(focusSearch), "f", [.command, .option], target: self),
         ])
+        add(L("menu.format"), formatItems())
         add(L("menu.window"), [
             item(L("menu.minimize"), #selector(NSWindow.performMiniaturize(_:)), "m"),
             item(L("menu.zoom"), #selector(NSWindow.performZoom(_:))),

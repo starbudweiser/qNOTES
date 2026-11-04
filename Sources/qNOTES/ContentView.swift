@@ -158,6 +158,8 @@ private struct EditorPane: View {
     var body: some View {
         let note = store.note(noteID)
         VStack(spacing: 0) {
+            FormatBar()
+            Rectangle().fill(Socle.C.border).frame(height: 1)
             NoteEditor(noteID: noteID, text: note?.text ?? "", fontSize: fontSize, separator: separator,
                        onChange: { store.update(id: noteID, text: $0) },
                        onSelection: { selection = $0 })

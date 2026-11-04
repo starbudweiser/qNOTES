@@ -95,7 +95,7 @@ struct SettingsView: View {
         .frame(width: 560, height: 640)
         .background(Socle.C.surface)
         .onAppear { backups = Backups.list() }
-        .onChange(of: sync) { _ in actions.applySync() }
+        .onChange(of: sync) { actions.applySync() }
         .confirmationDialog(L("restore.title"), isPresented: Binding(get: { toRestore != nil }, set: { if !$0 { toRestore = nil } }), titleVisibility: .visible) {
             Button(L("set.backups.restore"), role: .destructive) {
                 if let info = toRestore { notice = actions.restore(info.url) ? L("restore.done") : L("restore.failed"); backups = Backups.list() }

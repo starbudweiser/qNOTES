@@ -7,6 +7,7 @@ Bloc-notes Markdown personnel pour macOS, inspiré de Tot (The Iconfactory), san
 ## Fonctions
 
 - **Notes illimitées en Markdown**, affichées avec la mise en forme en direct : titres, gras, italique, barré, code, citations, liens, tâches.
+- **Assistant Markdown** : barre de format, menu Format avec raccourcis (⌘B, ⌘I, ⌘K…) et aide qui liste chaque balise ; un clic sur une ligne l'applique à la sélection, un second clic la retire.
 - **Puces intelligentes** : Retour continue la liste, une puce vide la termine, Tab et Maj-Tab décalent, `[]` crée une tâche, un clic sur `[ ]` la coche. La puce se choisit dans les réglages.
 - **Séparateurs personnalisés** : `---` puis Retour donne le séparateur choisi (ou le vôtre).
 - **Compteur de mots et de caractères**, pour la note ou la sélection.

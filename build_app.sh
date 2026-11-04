@@ -37,6 +37,21 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN" "$APP/Contents/MacOS/qNOTES"
 cp assets/qNOTES.icns "$APP/Contents/Resources/"
 cp -R Resources/*.lproj "$APP/Contents/Resources/"
+# Métadonnées des actions Raccourcis (App Intents) : SwiftPM ne les génère pas, on lance l'extracteur d'Xcode à la main.
+META="$(mktemp -d)"
+CONST="$(find .build/out/Intermediates.noindex/qNOTES.build/Release -name 'qNOTES-primary.swiftconstvalues' | head -1)"
+ls "$PWD"/Sources/qNOTES/*.swift > "$META/src.txt"
+echo "$PWD/$CONST" > "$META/const.txt"
+: > "$META/meta.txt"; : > "$META/static.txt"
+xcrun appintentsmetadataprocessor --output "$APP/Contents/Resources" \
+    --toolchain-dir "$(xcode-select -p)/Toolchains/XcodeDefault.xctoolchain" --module-name qNOTES \
+    --sdk-root "$(xcrun --show-sdk-path)" --xcode-version "$(xcodebuild -version | awk '/Build version/{print $3}')" \
+    --platform-family macOS --deployment-target 14.0 --target-triple arm64-apple-macos14.0 \
+    --source-file-list "$META/src.txt" --swift-const-vals-list "$META/const.txt" \
+    --metadata-file-list "$META/meta.txt" --static-metadata-file-list "$META/static.txt" \
+    --deployment-aware-processing --no-app-shortcuts-localization >/dev/null 2>&1 \
+    || echo "ATTENTION : métadonnées Raccourcis non générées" >&2
+rm -rf "$META"
 cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">

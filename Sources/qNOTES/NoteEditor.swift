@@ -4,11 +4,19 @@ import qNOTESCore
 
 /// Zone de texte : puces intelligentes, séparateurs personnalisés, cases à cocher cliquables.
 final class NoteTextView: NSTextView {
-    private func replace(_ range: NSRange, _ string: String) {
+    func replace(_ range: NSRange, _ string: String) {
         if shouldChangeText(in: range, replacementString: string) {
             replaceCharacters(in: range, with: string)
             didChangeText()
         }
+    }
+
+    /// Applique une modification de l'assistant Markdown (annulable avec ⌘Z) puis place la sélection.
+    func apply(_ edit: TextEdit) {
+        replace(edit.range, edit.replacement)
+        setSelectedRange(NSRange(location: min(edit.selection.location, (string as NSString).length),
+                                 length: min(edit.selection.length, max(0, (string as NSString).length - edit.selection.location))))
+        scrollRangeToVisible(selectedRange())
     }
 
     private var currentLine: (range: NSRange, text: String) {
@@ -147,6 +155,7 @@ struct NoteEditor: NSViewRepresentable {
         view.delegate = context.coordinator
         scroll.documentView = view
         context.coordinator.textView = view
+        EditorController.shared.textView = view
         context.coordinator.load(noteID: noteID, text: text)
         return scroll
     }

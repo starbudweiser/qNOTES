@@ -12,5 +12,6 @@ compteur de mots, widgets. Swift/SwiftUI + AppKit (NSTextView), sans bac à sabl
   `~/Library/Mobile Documents/com~apple~CloudDocs/qNOTES`. Sauvegardes : `…/qNOTES/Backups`. `QNOTES_DATA_DIR` et
   `QNOTES_ICLOUD_DIR` redirigent pour les essais.
 - Ne jamais comparer des chemins de fichiers dans NoteStore (liens symboliques) : comparer les noms (une perte de données est déjà arrivée).
-- Essais sans fenêtre : `qNOTES --capture f.png`, `--capture-settings f.png`, `--capture-about f.png`.
+- Assistant Markdown : logique pure dans `qNOTESCore/MarkdownAssistant.swift` (testée), branchée par `MarkdownAssist.swift` (barre, aide, menu Format).
+- Essais sans fenêtre : `qNOTES --selftest` (comportement de la zone de texte), `qNOTES --capture f.png`, `--capture-settings f.png`, `--capture-about f.png`.
 - Build et installation (dans ~/Applications/Applications Personnelles) : `./build_app.sh`. Publier : `scripts/release.sh <version>`.

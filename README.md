@@ -9,6 +9,7 @@ qNOTES is a personal Markdown notes app for macOS, inspired by Tot (The Iconfact
 ## Features
 
 - **Unlimited notes in Markdown**, shown with live formatting: headings, bold, italic, strikethrough, code, quotes, links, task lists.
+- **Markdown assistant**: a format bar, a Format menu with shortcuts (⌘B, ⌘I, ⌘K…) and a help sheet listing every tag; click a line to apply it to the selection, click again to remove it.
 - **Smart bullets**: Return continues a list, an empty bullet ends it, Tab and Shift-Tab indent, `[]` starts a task, a click on `[ ]` checks it. The bullet character is yours to choose.
 - **Custom separators**: type `---` then Return to get the separator you picked (or your own).
 - **Word and character counter**, for the whole note or the selection.

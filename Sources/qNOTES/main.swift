@@ -3,6 +3,8 @@ import qNOTESCore
 
 let arguments = CommandLine.arguments
 
+if arguments.contains("--selftest") { MainActor.assumeIsolated { _ = NSApplication.shared; SelfTest.run() } }
+
 let app = NSApplication.shared
 let delegate = MainActor.assumeIsolated { AppDelegate() }
 app.delegate = delegate
@@ -10,7 +12,7 @@ app.setActivationPolicy(.regular)
 
 /// `--capture <fichier.png>`, `--capture-about`, `--capture-settings` : rendu hors écran pour vérifier l'interface
 /// sans ouvrir de fenêtre devant le travail en cours.
-for (flag, render) in [("--capture", Capture.main), ("--capture-about", Capture.about), ("--capture-settings", Capture.settings)] {
+for (flag, render) in [("--capture", Capture.main), ("--capture-about", Capture.about), ("--capture-settings", Capture.settings), ("--capture-help", Capture.help)] {
     if let index = arguments.firstIndex(of: flag), arguments.indices.contains(index + 1) {
         let path = arguments[index + 1]
         app.setActivationPolicy(.prohibited)

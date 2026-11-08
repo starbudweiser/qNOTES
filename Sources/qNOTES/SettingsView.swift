@@ -23,8 +23,7 @@ struct SettingsView: View {
     @AppStorage(Prefs.separator) private var separator = Separators.presets[0]
     @AppStorage(Prefs.syncICloud) private var sync = false
     @AppStorage(Prefs.backupEnabled) private var backupOn = true
-    @AppStorage(Prefs.backupKeep) private var keep = 30
-    @AppStorage(Prefs.backupHours) private var hours = 1
+    @State private var allBackups = false
     @AppStorage(Prefs.autoUpdate) private var autoUpdate = true
     @AppStorage(Prefs.displayMode) private var display = "both"
     @AppStorage(Prefs.hotkeyEnabled) private var hotkey = true
@@ -82,12 +81,7 @@ struct SettingsView: View {
                 }
                 section(L("set.backups")) {
                     toggle(L("set.backups.on"), $backupOn)
-                    row(L("set.backups.every")) {
-                        SocleSegmented(options: [1, 6, 24], selection: hours, label: { L("set.hours", $0) }) { hours = $0 }
-                    }
-                    row(L("set.backups.keep")) {
-                        SocleSegmented(options: [10, 30, 100], selection: keep, label: { "\($0)" }) { keep = $0 }
-                    }
+                    hint(L("set.backups.hint"))
                     HStack(spacing: Socle.M.space2) {
                         Button(L("set.backups.now")) {
                             notice = actions.backupNow() ? L("set.backups.done") : L("set.backups.nothing")
@@ -98,7 +92,7 @@ struct SettingsView: View {
                     }
                     if !backups.isEmpty {
                         VStack(spacing: 0) {
-                            ForEach(backups.prefix(6)) { info in
+                            ForEach(allBackups ? backups : Array(backups.prefix(1))) { info in
                                 HStack {
                                     Text(info.date.formatted(date: .abbreviated, time: .shortened)).socle(Socle.T.body).foregroundStyle(Socle.C.text)
                                     Text(L("set.backups.notes", info.noteCount)).socle(Socle.T.meta).foregroundStyle(Socle.C.textSubtle)
@@ -109,6 +103,10 @@ struct SettingsView: View {
                                 .padding(.vertical, 2)
                                 Rectangle().fill(Socle.C.borderSubtle).frame(height: 1)
                             }
+                        }
+                        if backups.count > 1 {
+                            Button(allBackups ? L("set.backups.less") : L("set.backups.more")) { allBackups.toggle() }
+                                .buttonStyle(SocleButtonStyle(.tertiary, height: 26)).fixedSize()
                         }
                     }
                 }

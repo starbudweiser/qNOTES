@@ -39,9 +39,6 @@
 "set.sync.unavailable" = "iCloud Drive n'est pas activé sur ce Mac.";
 "set.backups" = "Sauvegardes";
 "set.backups.on" = "Sauvegarder automatiquement";
-"set.backups.every" = "Au plus une sauvegarde toutes les";
-"set.hours" = "%ld h";
-"set.backups.keep" = "Sauvegardes conservées";
 "set.backups.now" = "Sauvegarder maintenant";
 "set.backups.done" = "Sauvegarde créée";
 "set.backups.nothing" = "Rien à sauvegarder";
@@ -141,3 +138,6 @@
 "set.translucent" = "Fond translucide";
 "set.stayontop" = "Toujours au premier plan";
 "set.translucent.reduced" = "Sans effet sur ce Mac : « Réduire la transparence » est activé (Réglages Système > Accessibilité > Affichage).";
+"set.backups.hint" = "Une sauvegarde par jour ; les 10 dernières sont conservées.";
+"set.backups.more" = "Voir les autres sauvegardes";
+"set.backups.less" = "Masquer les autres";

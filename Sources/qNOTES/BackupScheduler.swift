@@ -1,7 +1,7 @@
 import Foundation
 import qNOTESCore
 
-/// Sauvegardes automatiques : au lancement puis toutes les dix minutes, dès que la dernière a plus de N heures.
+/// Sauvegardes automatiques : au lancement puis toutes les dix minutes, dès que la dernière a plus d'un jour.
 @MainActor
 final class BackupScheduler {
     private let store: NoteStore
@@ -20,7 +20,7 @@ final class BackupScheduler {
     func runIfDue() {
         guard Prefs.backups else { return }
         let last = Backups.lastDate() ?? .distantPast
-        guard Date().timeIntervalSince(last) >= Double(Prefs.hours) * 3600 else { return }
+        guard Date().timeIntervalSince(last) >= Double(Prefs.backupEveryHours) * 3600 else { return }
         backupNow()
     }
 
@@ -28,7 +28,7 @@ final class BackupScheduler {
     func backupNow() -> Bool {
         store.flush()
         let made = (try? Backups.create(notes: store.notes)) ?? nil
-        Backups.prune(keep: Prefs.keep)
+        Backups.prune(keep: Prefs.backupKept)
         return made != nil
     }
 

@@ -39,9 +39,6 @@
 "set.sync.unavailable" = "iCloud Drive non è attivo su questo Mac.";
 "set.backups" = "Backup";
 "set.backups.on" = "Esegui backup automatici";
-"set.backups.every" = "Al massimo un backup ogni";
-"set.hours" = "%ld h";
-"set.backups.keep" = "Backup conservati";
 "set.backups.now" = "Esegui backup ora";
 "set.backups.done" = "Backup creato";
 "set.backups.nothing" = "Niente da salvare";
@@ -141,3 +138,6 @@
 "set.translucent" = "Sfondo traslucido";
 "set.stayontop" = "Sempre in primo piano";
 "set.translucent.reduced" = "Nessun effetto su questo Mac: «Riduci trasparenza» è attivo (Impostazioni di Sistema > Accessibilità > Schermo).";
+"set.backups.hint" = "Un backup al giorno; vengono conservati gli ultimi 10.";
+"set.backups.more" = "Mostra gli altri backup";
+"set.backups.less" = "Nascondi gli altri";

@@ -8,8 +8,6 @@ enum Prefs {
     static let bulletGlyph = "bulletGlyph"
     static let separator = "separator"
     static let backupEnabled = "backupEnabled"
-    static let backupKeep = "backupKeep"
-    static let backupHours = "backupHours"
     static let syncICloud = "syncICloud"
     static let autoUpdate = "autoUpdate"
     static let theme = "theme"
@@ -39,8 +37,9 @@ enum Prefs {
     static var onTop: Bool { defaults.object(forKey: stayOnTop) as? Bool ?? false }
     static var separatorText: String { defaults.string(forKey: separator) ?? Separators.presets[0] }
     static var backups: Bool { defaults.object(forKey: backupEnabled) as? Bool ?? true }
-    static var keep: Int { defaults.object(forKey: backupKeep) as? Int ?? 30 }
-    static var hours: Int { defaults.object(forKey: backupHours) as? Int ?? 1 }
+    /// Sauvegarde automatique : une par jour, les dix dernières sont conservées.
+    static let backupEveryHours = 24
+    static let backupKept = 10
     static var display: String {
         let value = defaults.string(forKey: displayMode) ?? "both"
         return displayModes.contains(value) ? value : "both"

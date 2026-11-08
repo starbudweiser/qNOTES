@@ -29,6 +29,7 @@ struct SettingsView: View {
     @AppStorage(Prefs.displayMode) private var display = "both"
     @AppStorage(Prefs.hotkeyEnabled) private var hotkey = true
     @AppStorage(Prefs.dotNumbers) private var dotNumbers = false
+    @State private var reducedTransparency = NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency
     @State private var login = SMAppService.mainApp.status == .enabled
     @State private var backups: [BackupInfo] = []
     @State private var toRestore: BackupInfo?
@@ -60,6 +61,7 @@ struct SettingsView: View {
                 }
                 section(L("set.window")) {
                     toggle(L("set.translucent"), $translucent)
+                    if reducedTransparency { hint(L("set.translucent.reduced")) }
                     toggle(L("set.stayontop"), $stayOnTop)
                 }
                 section(L("set.lists")) {
@@ -122,6 +124,9 @@ struct SettingsView: View {
         .frame(width: 560, height: 640)
         .background(Socle.C.surface)
         .onAppear { backups = Backups.list() }
+        .onReceive(NSWorkspace.shared.notificationCenter.publisher(for: NSWorkspace.accessibilityDisplayOptionsDidChangeNotification)) { _ in
+            reducedTransparency = NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency
+        }
         .onChange(of: sync) { actions.applySync() }
         .confirmationDialog(L("restore.title"), isPresented: Binding(get: { toRestore != nil }, set: { if !$0 { toRestore = nil } }), titleVisibility: .visible) {
             Button(L("set.backups.restore"), role: .destructive) {

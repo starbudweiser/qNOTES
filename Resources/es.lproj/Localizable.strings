@@ -140,3 +140,4 @@
 "set.monospaced" = "Monoespaciada";
 "set.translucent" = "Fondo translúcido";
 "set.stayontop" = "Siempre al frente";
+"set.translucent.reduced" = "Sin efecto en este Mac: «Reducir transparencia» está activado (Ajustes del Sistema > Accesibilidad > Pantalla).";

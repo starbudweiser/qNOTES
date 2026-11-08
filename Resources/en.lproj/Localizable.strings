@@ -140,3 +140,4 @@
 "set.monospaced" = "Monospaced";
 "set.translucent" = "Translucent background";
 "set.stayontop" = "Stay on top";
+"set.translucent.reduced" = "No effect on this Mac: “Reduce transparency” is on (System Settings > Accessibility > Display).";

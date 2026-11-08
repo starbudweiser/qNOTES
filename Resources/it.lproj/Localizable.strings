@@ -140,3 +140,4 @@
 "set.monospaced" = "Spaziatura fissa";
 "set.translucent" = "Sfondo traslucido";
 "set.stayontop" = "Sempre in primo piano";
+"set.translucent.reduced" = "Nessun effetto su questo Mac: «Riduci trasparenza» è attivo (Impostazioni di Sistema > Accessibilità > Schermo).";

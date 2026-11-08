@@ -50,12 +50,7 @@ struct SettingsView: View {
                     row(L("set.font")) { FontPickerButton(family: $fontFamily).opacity(mono ? 0.45 : 1).disabled(mono) }
                     toggle(L("set.monospaced"), $mono)
                     row(L("set.fontsize")) {
-                        HStack(spacing: Socle.M.space2) {
-                            Text("A").font(.system(size: 11)).foregroundStyle(Socle.C.textMuted)
-                            Slider(value: $fontSize, in: 12...28, step: 1).frame(width: 170)
-                            Text("A").font(.system(size: 17)).foregroundStyle(Socle.C.textMuted)
-                            Text("\(Int(fontSize))").socle(Socle.T.body).foregroundStyle(Socle.C.textStrong).frame(width: 24, alignment: .trailing)
-                        }
+                        SocleSegmented(options: [14.0, 16.0, 18.0, 20.0], selection: fontSize, label: { "\(Int($0))" }) { fontSize = $0 }
                     }
                     Text(L("set.font.sample"))
                         .font(Font(RichText.font(family: mono ? RichText.monoFamily : fontFamily, size: fontSize) as CTFont))

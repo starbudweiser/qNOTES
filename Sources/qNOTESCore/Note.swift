@@ -10,14 +10,17 @@ public struct Note: Codable, Identifiable, Equatable, Sendable {
     public var created: Date
     public var modified: Date
     public var pinned: Bool
+    /// Place dans la liste (plus petit = plus haut), choisie par l'utilisateur ; les notes épinglées passent d'abord.
+    public var order: Double?
 
-    public init(id: UUID = UUID(), text: String = "", rtf: Data? = nil, created: Date = Date(), modified: Date = Date(), pinned: Bool = false) {
+    public init(id: UUID = UUID(), text: String = "", rtf: Data? = nil, created: Date = Date(), modified: Date = Date(), pinned: Bool = false, order: Double? = nil) {
         self.id = id
         self.text = text
         self.rtf = rtf
         self.created = created
         self.modified = modified
         self.pinned = pinned
+        self.order = order
     }
 
     /// Ligne débarrassée de ses marqueurs, ou nil si elle ne contient ni lettre ni chiffre (séparateurs, lignes de « ==== »).

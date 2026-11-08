@@ -130,6 +130,25 @@ import Testing
         #expect(!FileManager.default.fileExists(atPath: dir.appendingPathComponent("\(note.id.uuidString) 2.json").path))
     }
 
+    @Test func newNotesComeFirstAndMovesAreFree() {
+        let store = NoteStore(directory: FileManager.default.temporaryDirectory.appendingPathComponent("qn-move-\(UUID().uuidString)"))
+        let a = store.create(text: "a"), b = store.create(text: "b"), c = store.create(text: "c")
+        #expect(store.notes.map(\.text) == ["c", "b", "a"])
+        store.update(id: a.id, text: "a modifiée")
+        #expect(store.notes.map(\.text) == ["c", "b", "a modifiée"])   // modifier ne déplace pas
+        store.move(id: a.id, before: c.id)
+        #expect(store.notes.map(\.text) == ["a modifiée", "c", "b"])
+        store.move(id: a.id, before: nil)
+        #expect(store.notes.map(\.text) == ["c", "b", "a modifiée"])
+        store.move(id: c.id, before: a.id)
+        #expect(store.notes.map(\.text) == ["b", "c", "a modifiée"])
+        for _ in 0..<60 { store.move(id: a.id, before: b.id); store.move(id: a.id, before: c.id) }   // pas de collision d'ordres
+        #expect(Set(store.notes.map(\.id)).count == 3)
+        store.setPinned(id: b.id, true)
+        store.move(id: a.id, before: b.id)
+        #expect(store.note(a.id)?.pinned == true && store.notes.first?.id == a.id)
+    }
+
     @Test func pinnedFirst() {
         let store = NoteStore(directory: temp())
         let first = store.create(text: "ancienne")

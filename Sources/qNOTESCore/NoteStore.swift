@@ -108,7 +108,8 @@ public final class NoteStore: ObservableObject {
                 seen[canonicalName] = (try? canonical.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate
             }
             if let existing = byID[note.id] {
-                if note.modified > existing.modified, !dirty.contains(note.id) {
+                let moved = note.modified == existing.modified && note.order != existing.order
+                if note.modified > existing.modified || moved, !dirty.contains(note.id) {
                     byID[note.id] = note
                     changed = true
                 }
@@ -124,12 +125,25 @@ public final class NoteStore: ObservableObject {
             changed = true
         }
         onDisk = present
+        // Notes sans place (anciennes versions) : elles gardent l'ordre qu'elles avaient (épinglées, puis récentes) et le fixent.
+        let unplaced = byID.values.filter { $0.order == nil }.sorted {
+            $0.pinned != $1.pinned ? $0.pinned : $0.modified > $1.modified
+        }
+        if !unplaced.isEmpty {
+            let base = (byID.values.compactMap(\.order).max() ?? -1) + 1
+            for (index, note) in unplaced.enumerated() {
+                byID[note.id]?.order = base + Double(index)
+                markDirty(note.id)
+            }
+            changed = true
+        }
         if changed { publish(Array(byID.values)) }
     }
 
     private func publish(_ list: [Note]) {
         notes = list.sorted {
             if $0.pinned != $1.pinned { return $0.pinned }
+            if $0.order != $1.order { return ($0.order ?? .infinity) < ($1.order ?? .infinity) }
             return $0.modified > $1.modified
         }
     }
@@ -138,7 +152,7 @@ public final class NoteStore: ObservableObject {
 
     @discardableResult
     public func create(text: String = "", rtf: Data? = nil) -> Note {
-        let note = Note(text: text, rtf: rtf)
+        let note = Note(text: text, rtf: rtf, order: topOrder)
         publish(notes + [note])
         markDirty(note.id)
         return note
@@ -146,6 +160,8 @@ public final class NoteStore: ObservableObject {
 
     /// Ajoute une note telle quelle, avec ses dates (import).
     public func insert(_ note: Note) {
+        var note = note
+        if note.order == nil { note.order = topOrder }
         publish(notes.filter { $0.id != note.id } + [note])
         markDirty(note.id)
     }
@@ -159,6 +175,42 @@ public final class NoteStore: ObservableObject {
         list[index].modified = Date()
         publish(list)
         markDirty(id)
+    }
+
+    /// Place au-dessus de toutes les notes : les nouvelles notes arrivent en tête.
+    private var topOrder: Double { (notes.compactMap(\.order).min() ?? 1) - 1 }
+
+    /// Déplace une note juste avant `target` (nil : tout à la fin). Elle rejoint le groupe (épinglé ou non) de la note visée.
+    /// Seule la note déplacée est réécrite ; sa date de modification ne change pas.
+    public func move(id: UUID, before target: UUID?) {
+        guard id != target, let moving = note(id) else { return }
+        let others = notes.filter { $0.id != id }
+        let pinned = target.flatMap { t in others.first { $0.id == t }?.pinned } ?? others.last?.pinned ?? false
+        var group = others.filter { $0.pinned == pinned }
+        let index = target.flatMap { t in group.firstIndex { $0.id == t } } ?? group.count
+        var order: Double
+        let before = index > 0 ? group[index - 1].order : nil
+        let after = index < group.count ? group[index].order : nil
+        switch (before, after) {
+        case let (b?, a?) where abs(a - b) > 1e-6: order = (a + b) / 2
+        case let (b?, nil): order = b + 1
+        case let (nil, a?): order = a - 1
+        case (nil, nil): order = 0
+        default: order = -1   // égalité : on renumérote ci-dessous
+        }
+        var list = notes
+        guard let at = list.firstIndex(where: { $0.id == id }) else { return }
+        list[at].pinned = pinned
+        if before != nil, after != nil, abs((after ?? 0) - (before ?? 0)) <= 1e-6 {
+            group.insert(moving, at: index)
+            for (position, member) in group.enumerated() {
+                if let i = list.firstIndex(where: { $0.id == member.id }) { list[i].order = Double(position); markDirty(member.id) }
+            }
+        } else {
+            list[at].order = order
+            markDirty(id)
+        }
+        publish(list)
     }
 
     public func setPinned(id: UUID, _ pinned: Bool) {

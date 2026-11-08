@@ -207,21 +207,25 @@ struct QuickView: View {
     @AppStorage(Prefs.monospaced) private var mono = false
     @AppStorage(Prefs.dotNumbers) private var dotNumbers = false
 
-    /// Les pastilles suivent l'ordre de création : une note garde sa couleur, quelles que soient ses modifications.
-    private var dotNotes: [Note] {
-        Array(store.notes.sorted { ($0.created, $0.id.uuidString) < ($1.created, $1.id.uuidString) }.prefix(dotColors.count))
-    }
-
     var body: some View {
         let note = model.selectedID.flatMap { store.note($0) }
         VStack(spacing: 0) {
             HStack(spacing: Socle.M.space2) {
-                ForEach(Array(dotNotes.enumerated()), id: \.element.id) { index, entry in
-                    Dot(color: dotColors[index], number: dotNumbers ? index + 1 : nil, selected: entry.id == model.selectedID,
-                        title: entry.title.isEmpty ? L("note.untitled") : entry.title)
-                        .onTapGesture { model.selectedID = entry.id }
+                // Toutes les notes, dans l'ordre choisi dans la liste ; les couleurs se répètent au-delà de sept.
+                ScrollViewReader { proxy in
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: Socle.M.space2) {
+                            ForEach(Array(store.notes.enumerated()), id: \.element.id) { index, entry in
+                                Dot(color: dotColors[index % dotColors.count], number: dotNumbers ? index + 1 : nil, selected: entry.id == model.selectedID,
+                                    title: entry.title.isEmpty ? L("note.untitled") : entry.title)
+                                    .id(entry.id)
+                                    .onTapGesture { model.selectedID = entry.id }
+                            }
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .onChange(of: model.selectedID) { _, id in if let id { withAnimation { proxy.scrollTo(id) } } }
                 }
-                Spacer(minLength: Socle.M.space2)
                 Button { model.newNote() } label: { Image(systemName: "plus").font(.system(size: 13)) }
                     .buttonStyle(SocleButtonStyle(.tertiary, height: 28)).frame(width: 34)
                     .help(L("note.new"))

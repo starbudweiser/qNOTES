@@ -57,6 +57,9 @@ private struct EmptyState: View {
 private struct Sidebar: View {
     @ObservedObject var model: AppModel
     @ObservedObject var store: NoteStore
+    /// Note sous le pointeur pendant un glisser-déposer (« end » : zone sous la dernière note).
+    @State private var dropTarget: UUID?
+    @State private var dropAtEnd = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -83,7 +86,18 @@ private struct Sidebar: View {
                     VStack(spacing: 2) {
                         ForEach(notes) { note in
                             NoteRow(note: note, selected: note.id == model.selectedID)
+                                .overlay(alignment: .top) {
+                                    if dropTarget == note.id { Socle.C.accent.frame(height: 2).padding(.horizontal, Socle.M.space2) }
+                                }
                                 .onTapGesture { model.selectedID = note.id }
+                                .draggable(note.id.uuidString)
+                                .dropDestination(for: String.self) { items, _ in
+                                    guard let raw = items.first, let id = UUID(uuidString: raw) else { return false }
+                                    store.move(id: id, before: note.id)
+                                    return true
+                                } isTargeted: { inside in
+                                    if inside { dropTarget = note.id } else if dropTarget == note.id { dropTarget = nil }
+                                }
                                 .contextMenu {
                                     Button(note.pinned ? L("note.unpin") : L("note.pin")) { store.setPinned(id: note.id, !note.pinned) }
                                     Button(L("note.duplicate")) { model.duplicate(note.id) }
@@ -92,6 +106,16 @@ private struct Sidebar: View {
                                     Button(L("note.delete"), role: .destructive) { model.requestDelete(note.id) }
                                 }
                         }
+                        // Zone sous la dernière note : y déposer une note la place en dernier.
+                        Color.clear.frame(height: 36)
+                            .overlay(alignment: .top) {
+                                if dropAtEnd { Socle.C.accent.frame(height: 2).padding(.horizontal, Socle.M.space2) }
+                            }
+                            .dropDestination(for: String.self) { items, _ in
+                                guard let raw = items.first, let id = UUID(uuidString: raw) else { return false }
+                                store.move(id: id, before: nil)
+                                return true
+                            } isTargeted: { dropAtEnd = $0 }
                     }
                     .padding(.horizontal, Socle.M.space2).padding(.bottom, Socle.M.space2)
                 }

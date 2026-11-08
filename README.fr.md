@@ -11,6 +11,7 @@ Bloc-notes personnel en texte enrichi pour macOS, inspiré de Tot (The Iconfacto
 - **Options de fenêtre** : police à chasse fixe, curseur de taille du texte, fond translucide et toujours au premier plan (Réglages).
 - **Choix de la police** : Réglages > Écriture permet de choisir la police (toute famille installée, aperçue dans sa propre police) et la taille du texte pour toutes les notes.
 - **Outils de mise en page classiques** : barre d'outils, menu Format avec les raccourcis habituels (⌘B, ⌘I, ⌘U, ⌘K…) et mini-barre flottante au-dessus du texte sélectionné ; les boutons s'allument selon le style sous le curseur. Les anciennes notes Markdown sont converties à l'ouverture.
+- **Ordre libre des notes** : glissez les notes dans la liste pour les ranger comme vous voulez (déposer sur une note épinglée l'épingle) ; les nouvelles notes arrivent en tête, une modification ne déplace jamais une note. Le volet rapide montre une pastille de couleur par note, dans ce même ordre.
 - **Puces intelligentes** : Retour continue la liste, une puce vide la termine, Tab et Maj-Tab décalent, `[]` crée une tâche, un clic sur sa case la coche. La puce se choisit dans les réglages.
 - **Séparateurs personnalisés** : `---` puis Retour donne le séparateur choisi (ou le vôtre).
 - **Compteur de mots et de caractères**, pour la note ou la sélection.

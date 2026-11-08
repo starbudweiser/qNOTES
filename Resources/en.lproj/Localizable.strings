@@ -136,3 +136,7 @@
 "fmt.link.message" = "Address of the link for the selected text.";
 "fmt.link.ok" = "Add";
 "set.dotnumbers" = "Show a number in the panel’s color dots";
+"set.window" = "Window";
+"set.monospaced" = "Monospaced";
+"set.translucent" = "Translucent background";
+"set.stayontop" = "Stay on top";

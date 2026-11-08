@@ -13,12 +13,19 @@ enum RichText {
     static let subtitleScale: CGFloat = 1.3
 
     static let defaultColor = NSColor(Socle.C.text)
+    /// Valeur spéciale de la famille : police à chasse fixe du système.
+    nonisolated static let monoFamily = "!mono"
 
     // MARK: Polices et styles de base
 
     static func font(family: String, size: CGFloat, bold: Bool = false, italic: Bool = false) -> NSFont {
         let manager = NSFontManager.shared
         var result: NSFont
+        if family == monoFamily {
+            result = .monospacedSystemFont(ofSize: size, weight: bold ? .bold : .regular)
+            if italic { result = manager.convert(result, toHaveTrait: .italicFontMask) }
+            return result
+        }
         if family.isEmpty || manager.font(withFamily: family, traits: [], weight: 5, size: size) == nil {
             result = .systemFont(ofSize: size, weight: bold ? .bold : .regular)
             if italic { result = manager.convert(result, toHaveTrait: .italicFontMask) }

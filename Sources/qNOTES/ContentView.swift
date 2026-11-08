@@ -19,9 +19,9 @@ struct ContentView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Socle.C.surface)
+            .surfaceBackground(Socle.C.surface)
         }
-        .background(Socle.C.bg)
+        .surfaceBackground(Socle.C.bg, base: true)
         .confirmationDialog(L("delete.title"), isPresented: Binding(get: { model.pendingDelete != nil }, set: { if !$0 { model.pendingDelete = nil } }),
                             titleVisibility: .visible) {
             Button(L("delete.confirm"), role: .destructive) {
@@ -102,7 +102,7 @@ private struct Sidebar: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, Socle.M.space3).padding(.vertical, Socle.M.space2)
         }
-        .background(Socle.C.surfaceRaised)
+        .surfaceBackground(Socle.C.surfaceRaised)
     }
 
     private func copy(_ note: Note) {
@@ -158,13 +158,14 @@ private struct EditorPane: View {
     @State private var selection = ""
     @AppStorage(Prefs.fontSize) private var fontSize = Prefs.defaultFontSize
     @AppStorage(Prefs.fontFamily) private var fontFamily = ""
+    @AppStorage(Prefs.monospaced) private var mono = false
 
     var body: some View {
         let note = store.note(noteID)
         VStack(spacing: 0) {
             FormatBar()
             Rectangle().fill(Socle.C.border).frame(height: 1)
-            NoteEditor(noteID: noteID, text: note?.text ?? "", rtf: note?.rtf, fontSize: fontSize, fontFamily: fontFamily,
+            NoteEditor(noteID: noteID, text: note?.text ?? "", rtf: note?.rtf, fontSize: fontSize, fontFamily: mono ? RichText.monoFamily : fontFamily,
                        onChange: { store.update(id: noteID, text: $0, rtf: $1) },
                        onSelection: { selection = $0 })
             Rectangle().fill(Socle.C.border).frame(height: 1)
@@ -180,7 +181,7 @@ private struct EditorPane: View {
                 }
             }
             .padding(.horizontal, Socle.M.space4).padding(.vertical, Socle.M.space2)
-            .background(Socle.C.surfaceRaised)
+            .surfaceBackground(Socle.C.surfaceRaised)
         }
     }
 }

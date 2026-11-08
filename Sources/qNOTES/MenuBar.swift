@@ -204,6 +204,7 @@ struct QuickView: View {
     @State private var selection = ""
     @AppStorage(Prefs.fontSize) private var fontSize = Prefs.defaultFontSize
     @AppStorage(Prefs.fontFamily) private var fontFamily = ""
+    @AppStorage(Prefs.monospaced) private var mono = false
     @AppStorage(Prefs.dotNumbers) private var dotNumbers = false
 
     /// Les pastilles suivent l'ordre de création : une note garde sa couleur, quelles que soient ses modifications.
@@ -235,7 +236,7 @@ struct QuickView: View {
             .padding(.horizontal, Socle.M.space3).padding(.vertical, Socle.M.space2)
             Rectangle().fill(Socle.C.border).frame(height: 1)
             if let note {
-                NoteEditor(noteID: note.id, text: note.text, rtf: note.rtf, fontSize: fontSize, fontFamily: fontFamily,
+                NoteEditor(noteID: note.id, text: note.text, rtf: note.rtf, fontSize: fontSize, fontFamily: mono ? RichText.monoFamily : fontFamily,
                            onChange: { store.update(id: note.id, text: $0, rtf: $1) },
                            onSelection: { selection = $0 })
             } else {
@@ -259,10 +260,10 @@ struct QuickView: View {
                     .help(L("menubar.resize"))
             }
             .padding(.horizontal, Socle.M.space3).padding(.vertical, Socle.M.space1_5)
-            .background(Socle.C.surfaceRaised)
+            .surfaceBackground(Socle.C.surfaceRaised)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Socle.C.surface)
+        .surfaceBackground(Socle.C.surface, base: true)
         .overlay(RoundedRectangle(cornerRadius: 12).stroke(Socle.C.borderStrong, lineWidth: 1))
     }
 }

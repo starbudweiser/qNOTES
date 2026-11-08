@@ -127,7 +127,7 @@ struct FormatBar: View {
             }
             .padding(.horizontal, Socle.M.space3).padding(.vertical, Socle.M.space1_5)
         }
-        .background(Socle.C.surfaceRaised)
+        .surfaceBackground(Socle.C.surfaceRaised)
     }
 }
 

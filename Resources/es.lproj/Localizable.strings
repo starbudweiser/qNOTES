@@ -136,3 +136,7 @@
 "fmt.link.message" = "Dirección del enlace para el texto seleccionado.";
 "fmt.link.ok" = "Añadir";
 "set.dotnumbers" = "Mostrar un número en los puntos de color del panel";
+"set.window" = "Ventana";
+"set.monospaced" = "Monoespaciada";
+"set.translucent" = "Fondo translúcido";
+"set.stayontop" = "Siempre al frente";

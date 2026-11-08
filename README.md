@@ -10,6 +10,7 @@ qNOTES is a personal rich-text notes app for macOS, inspired by Tot (The Iconfac
 
 - **Unlimited rich-text notes**: headings, bold, italic, underline, strikethrough, colors, alignment, bulleted / numbered / task lists, links. Notes are stored as RTF with a plain-text mirror.
 - **Import from Tot**: File > Import Notes… reads Tot's latest backup (Tot is not modified) or any `.json`, `.md`, `.txt` file; dates are kept, nothing is duplicated.
+- **Window options**: monospaced font, text size slider, translucent background and stay-on-top (Settings).
 - **Font picker**: Settings > Writing lets you choose the font (any installed family, previewed in itself) and the text size for all notes.
 - **Classic formatting tools**: a toolbar, a Format menu with the usual shortcuts (⌘B, ⌘I, ⌘U, ⌘K…) and a floating mini toolbar over the selected text; the buttons light up for the style under the cursor. Old Markdown notes are converted when opened.
 - **Smart bullets**: Return continues a list, an empty bullet ends it, Tab and Shift-Tab indent, `[]` starts a task, a click on its box checks it. The bullet character is yours to choose.

@@ -14,6 +14,9 @@ enum Prefs {
     static let autoUpdate = "autoUpdate"
     static let theme = "theme"
     static let fontFamily = "fontFamily"
+    static let monospaced = "monospaced"
+    static let translucent = "translucent"
+    static let stayOnTop = "stayOnTop"
 
     static let displayMode = "displayMode"
     static let hotkeyEnabled = "hotkeyEnabled"
@@ -30,7 +33,10 @@ enum Prefs {
     static var smart: Bool { defaults.object(forKey: smartBullets) as? Bool ?? true }
     static var glyph: String { defaults.string(forKey: bulletGlyph) ?? "•" }
     /// Famille de police des notes (vide : police du système).
-    static var family: String { defaults.string(forKey: fontFamily) ?? "" }
+    static var family: String { mono ? RichText.monoFamily : defaults.string(forKey: fontFamily) ?? "" }
+    static var mono: Bool { defaults.object(forKey: monospaced) as? Bool ?? false }
+    static var translucentWindow: Bool { defaults.object(forKey: translucent) as? Bool ?? false }
+    static var onTop: Bool { defaults.object(forKey: stayOnTop) as? Bool ?? false }
     static var separatorText: String { defaults.string(forKey: separator) ?? Separators.presets[0] }
     static var backups: Bool { defaults.object(forKey: backupEnabled) as? Bool ?? true }
     static var keep: Int { defaults.object(forKey: backupKeep) as? Int ?? 30 }

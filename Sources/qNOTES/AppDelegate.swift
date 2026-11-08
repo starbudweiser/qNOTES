@@ -37,7 +37,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         updates.start()
         setUpDisplay()
         NotificationCenter.default.addObserver(forName: UserDefaults.didChangeNotification, object: nil, queue: .main) { [weak self] _ in
-            MainActor.assumeIsolated { self?.applyDisplay() }
+            MainActor.assumeIsolated { self?.applyDisplay(); self?.applyWindowPrefs() }
         }
     }
 
@@ -66,6 +66,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         bar.setVisible(Prefs.display != "dock")
         NSApp.setActivationPolicy(Prefs.display == "menubar" ? .accessory : .regular)
         if Prefs.hotkey { hotKey.register() } else { hotKey.unregister() }
+    }
+
+    /// « Toujours au premier plan » et « Fond translucide » pour la fenêtre principale, appliqués en direct.
+    private func applyWindowPrefs() {
+        guard let w = window else { return }
+        w.level = Prefs.onTop ? .floating : .normal
+        w.isOpaque = !Prefs.translucentWindow
+        w.backgroundColor = Prefs.translucentWindow ? .clear : .windowBackgroundColor
     }
 
     private var shownOnActivation = false
@@ -116,6 +124,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     func showMainWindow() {
         if window == nil { window = makeMainWindow() }
+        applyWindowPrefs()
         window?.present()
     }
 

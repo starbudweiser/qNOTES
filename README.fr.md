@@ -8,6 +8,7 @@ Bloc-notes personnel en texte enrichi pour macOS, inspiré de Tot (The Iconfacto
 
 - **Notes illimitées en texte enrichi** : titres, gras, italique, souligné, barré, couleurs, alignement, listes à puces / numérotées / de tâches, liens. Les notes sont enregistrées en RTF avec un miroir en texte simple.
 - **Import depuis Tot** : Fichier > Importer des notes… lit la dernière sauvegarde de Tot (Tot n'est pas modifié) ou tout fichier `.json`, `.md`, `.txt` ; les dates sont conservées, aucun doublon.
+- **Options de fenêtre** : police à chasse fixe, curseur de taille du texte, fond translucide et toujours au premier plan (Réglages).
 - **Choix de la police** : Réglages > Écriture permet de choisir la police (toute famille installée, aperçue dans sa propre police) et la taille du texte pour toutes les notes.
 - **Outils de mise en page classiques** : barre d'outils, menu Format avec les raccourcis habituels (⌘B, ⌘I, ⌘U, ⌘K…) et mini-barre flottante au-dessus du texte sélectionné ; les boutons s'allument selon le style sous le curseur. Les anciennes notes Markdown sont converties à l'ouverture.
 - **Puces intelligentes** : Retour continue la liste, une puce vide la termine, Tab et Maj-Tab décalent, `[]` crée une tâche, un clic sur sa case la coche. La puce se choisit dans les réglages.

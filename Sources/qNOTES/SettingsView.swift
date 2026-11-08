@@ -17,6 +17,9 @@ struct SettingsView: View {
     @AppStorage(Prefs.smartBullets) private var smart = true
     @AppStorage(Prefs.bulletGlyph) private var glyph = "•"
     @AppStorage(Prefs.fontFamily) private var fontFamily = ""
+    @AppStorage(Prefs.monospaced) private var mono = false
+    @AppStorage(Prefs.translucent) private var translucent = false
+    @AppStorage(Prefs.stayOnTop) private var stayOnTop = false
     @AppStorage(Prefs.separator) private var separator = Separators.presets[0]
     @AppStorage(Prefs.syncICloud) private var sync = false
     @AppStorage(Prefs.backupEnabled) private var backupOn = true
@@ -44,15 +47,25 @@ struct SettingsView: View {
                     toggle(L("set.login"), Binding(get: { login }, set: { setLogin($0) }))
                 }
                 section(L("set.writing")) {
-                    row(L("set.font")) { FontPickerButton(family: $fontFamily) }
+                    row(L("set.font")) { FontPickerButton(family: $fontFamily).opacity(mono ? 0.45 : 1).disabled(mono) }
+                    toggle(L("set.monospaced"), $mono)
                     row(L("set.fontsize")) {
-                        SocleSegmented(options: [14.0, 16.0, 18.0, 20.0], selection: fontSize, label: { "\(Int($0))" }) { fontSize = $0 }
+                        HStack(spacing: Socle.M.space2) {
+                            Text("A").font(.system(size: 11)).foregroundStyle(Socle.C.textMuted)
+                            Slider(value: $fontSize, in: 12...28, step: 1).frame(width: 170)
+                            Text("A").font(.system(size: 17)).foregroundStyle(Socle.C.textMuted)
+                            Text("\(Int(fontSize))").socle(Socle.T.body).foregroundStyle(Socle.C.textStrong).frame(width: 24, alignment: .trailing)
+                        }
                     }
                     Text(L("set.font.sample"))
-                        .font(Font(RichText.font(family: fontFamily, size: fontSize) as CTFont))
+                        .font(Font(RichText.font(family: mono ? RichText.monoFamily : fontFamily, size: fontSize) as CTFont))
                         .foregroundStyle(Socle.C.text)
                         .padding(Socle.M.space3).frame(maxWidth: .infinity, alignment: .leading)
                         .background(Socle.C.bgSunken, in: RoundedRectangle(cornerRadius: Socle.M.radius))
+                }
+                section(L("set.window")) {
+                    toggle(L("set.translucent"), $translucent)
+                    toggle(L("set.stayontop"), $stayOnTop)
                 }
                 section(L("set.lists")) {
                     toggle(L("set.smart"), $smart)

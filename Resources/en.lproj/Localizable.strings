@@ -136,6 +136,11 @@
 "set.window" = "Window";
 "set.monospaced" = "Monospaced";
 "set.translucent" = "Translucent background";
+"set.panel" = "Menu bar panel";
+"set.panel.auto" = "Auto-close";
+"set.panel.front" = "Stay, in front";
+"set.panel.back" = "Stay, behind";
+"set.panel.hint" = "“Auto-close” hides the panel as soon as you click elsewhere. The other two keep it open; clicking the icon brings it to the front, a second click closes it (so does Esc).";
 "set.stayontop" = "Stay on top";
 "set.translucent.reduced" = "No effect on this Mac: “Reduce transparency” is on (System Settings > Accessibility > Display).";
 "set.backups.hint" = "One backup per day; the last 10 are kept.";

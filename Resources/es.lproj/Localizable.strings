@@ -136,6 +136,11 @@
 "set.window" = "Ventana";
 "set.monospaced" = "Monoespaciada";
 "set.translucent" = "Fondo translúcido";
+"set.panel" = "Panel de la barra de menús";
+"set.panel.auto" = "Se cierra solo";
+"set.panel.front" = "Fijo, delante";
+"set.panel.back" = "Fijo, detrás";
+"set.panel.hint" = "«Se cierra solo» oculta el panel al hacer clic en otro sitio. Las otras dos opciones lo mantienen abierto; un clic en el icono lo trae al frente y otro lo cierra (Esc también).";
 "set.stayontop" = "Siempre al frente";
 "set.translucent.reduced" = "Sin efecto en este Mac: «Reducir transparencia» está activado (Ajustes del Sistema > Accesibilidad > Pantalla).";
 "set.backups.hint" = "Una copia al día; se conservan las 10 últimas.";

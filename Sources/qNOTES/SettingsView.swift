@@ -28,6 +28,7 @@ struct SettingsView: View {
     @AppStorage(Prefs.displayMode) private var display = "both"
     @AppStorage(Prefs.hotkeyEnabled) private var hotkey = true
     @AppStorage(Prefs.dotNumbers) private var dotNumbers = false
+    @AppStorage(Prefs.panelMode) private var panelMode = "auto"
     @State private var reducedTransparency = NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency
     @State private var login = SMAppService.mainApp.status == .enabled
     @State private var backups: [BackupInfo] = []
@@ -42,6 +43,10 @@ struct SettingsView: View {
                 section(L("set.display")) {
                     SocleSegmented(options: Prefs.displayModes, selection: display, label: { L("set.display.\($0)") }) { display = $0 }
                     hint(L("set.display.hint"))
+                    row(L("set.panel")) {
+                        SocleSegmented(options: Prefs.panelModes, selection: panelMode, label: { L("set.panel.\($0)") }) { panelMode = $0 }
+                    }
+                    hint(L("set.panel.hint"))
                     toggle(L("set.hotkey"), $hotkey)
                     toggle(L("set.dotnumbers"), $dotNumbers)
                     toggle(L("set.login"), Binding(get: { login }, set: { setLogin($0) }))

@@ -40,7 +40,6 @@ final class MenuBarController: NSObject, NSWindowDelegate {
         panel.isOpaque = false
         panel.backgroundColor = .clear
         panel.hasShadow = true
-        panel.level = .popUpMenu
         panel.isReleasedWhenClosed = false
         panel.hidesOnDeactivate = false
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
@@ -57,6 +56,15 @@ final class MenuBarController: NSObject, NSWindowDelegate {
         host.layer?.cornerRadius = 12
         host.layer?.masksToBounds = true
         panel.contentView = host
+        applyLevel()
+        NotificationCenter.default.addObserver(forName: UserDefaults.didChangeNotification, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.applyLevel() }
+        }
+    }
+
+    /// Niveau du volet selon le réglage : devant tout, ou au rang des fenêtres ordinaires (il passe alors derrière les autres).
+    private func applyLevel() {
+        panel.level = Prefs.panel == "back" ? .normal : .popUpMenu
     }
 
     /// Gros point blanc (image non « template » : il reste blanc quelle que soit la barre de menu).
@@ -96,7 +104,7 @@ final class MenuBarController: NSObject, NSWindowDelegate {
             }
             item = status
             mouseMonitor = NSEvent.addLocalMonitorForEvents(matching: .leftMouseDown) { [weak self] event in
-                if let self, event.window != nil, event.window === self.item?.button?.window { self.visibleAtMouseDown = self.panel.isVisible }
+                if let self, event.window != nil, event.window === self.item?.button?.window { self.visibleAtMouseDown = self.panel.isVisible && (Prefs.panel == "auto" || self.panel.isKeyWindow) }
                 return event
             }
         } else if !visible, let status = item {
@@ -110,13 +118,13 @@ final class MenuBarController: NSObject, NSWindowDelegate {
     @objc private func clicked() {
         if NSApp.currentEvent?.type == .rightMouseUp { showMenu(); return }
         // Un second clic sur l'icône referme le volet ; il ne doit pas le rouvrir parce que le clic l'a déjà fait fermer.
-        let wasVisible = visibleAtMouseDown ?? panel.isVisible
+        let wasVisible = visibleAtMouseDown ?? (panel.isVisible && (Prefs.panel == "auto" || panel.isKeyWindow))
         visibleAtMouseDown = nil
         if wasVisible { close() } else { show() }
     }
 
     func toggle() {
-        if panel.isVisible { close() } else { show() }
+        if panel.isVisible && (Prefs.panel == "auto" || panel.isKeyWindow) { close() } else { show() }
     }
 
     func close() { panel.orderOut(nil) }
@@ -148,7 +156,7 @@ final class MenuBarController: NSObject, NSWindowDelegate {
 
     func windowDidResignKey(_ notification: Notification) {
         // Le changement d'application en cours d'ouverture ne doit pas refermer aussitôt le volet.
-        guard panel.isVisible, Date().timeIntervalSince(lastShown) > 0.3 else { return }
+        guard Prefs.panel == "auto", panel.isVisible, Date().timeIntervalSince(lastShown) > 0.3 else { return }
         close()
     }
 

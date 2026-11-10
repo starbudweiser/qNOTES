@@ -20,7 +20,6 @@ compteur de mots, widgets. Swift/SwiftUI + AppKit (NSTextView), sans bac à sabl
   `Contents/PlugIns/qNOTESWidget.appex` (bac à sable + groupe `35KLMK53PN.fr.stephan.qnotes`, droits dans `assets/*.entitlements`, signés par un
   second passage après `sign_app.sh`). L'appli écrit `widget.json` dans `~/Library/Group Containers/<groupe>` (`WidgetBridge`, `WidgetShare`) ;
   `qNOTES --push-widget` le fait sans fenêtre. Clic = lien `qnotes://note/<id>`.
-  À FAIRE avant la première release : `_tools/notarize_app.sh` signe tout exécutable avec `entitlements_release.plist` (sans bac à sable) : l'extension
-  doit garder `assets/widget.entitlements` et l'appli `assets/app.entitlements`, sinon le widget ne se charge pas.
+  `scripts/release.sh` passe `APP_ENTITLEMENTS=assets/app.entitlements` à `notarize_app.sh` (l'extension garde ses droits, `--preserve-metadata`).
 - Essais sans fenêtre : `qNOTES --selftest` (comportement de la zone de texte), `qNOTES --capture f.png`, `--capture-settings f.png`, `--capture-about f.png`, `--capture-popover f.png`.
 - Build et installation (dans ~/Applications/Applications Personnelles) : `./build_app.sh`. Publier : `scripts/release.sh <version>`.

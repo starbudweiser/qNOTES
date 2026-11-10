@@ -10,7 +10,7 @@ DIST="$(mktemp -d)"
 
 swift test
 VERSION="$VERSION" NO_INSTALL=1 ./build_app.sh
-DIST="$DIST" "$NOTARIZE" qNOTES.app
+DIST="$DIST" APP_ENTITLEMENTS="$PWD/assets/app.entitlements" "$NOTARIZE" qNOTES.app
 (cd "$DIST" && shasum -a 256 qNOTES.zip > qNOTES.zip.sha256)
 python3 /Volumes/SKYRIM/TOOLS/MAC/_tools/release_notes.py qNOTES "$VERSION" --sha "$DIST/qNOTES.zip.sha256" -o "$DIST/notes.md"
 gh release create "v$VERSION" "$DIST/qNOTES.zip" "$DIST/qNOTES.zip.sha256" --title "qNOTES $VERSION" --notes-file "$DIST/notes.md"

@@ -104,7 +104,7 @@ final class MenuBarController: NSObject, NSWindowDelegate {
             }
             item = status
             mouseMonitor = NSEvent.addLocalMonitorForEvents(matching: .leftMouseDown) { [weak self] event in
-                if let self, event.window != nil, event.window === self.item?.button?.window { self.visibleAtMouseDown = self.panel.isVisible && (Prefs.panel == "auto" || self.panel.isKeyWindow) }
+                if let self, event.window != nil, event.window === self.item?.button?.window { self.visibleAtMouseDown = self.panel.isVisible }
                 return event
             }
         } else if !visible, let status = item {
@@ -118,13 +118,13 @@ final class MenuBarController: NSObject, NSWindowDelegate {
     @objc private func clicked() {
         if NSApp.currentEvent?.type == .rightMouseUp { showMenu(); return }
         // Un second clic sur l'icône referme le volet ; il ne doit pas le rouvrir parce que le clic l'a déjà fait fermer.
-        let wasVisible = visibleAtMouseDown ?? (panel.isVisible && (Prefs.panel == "auto" || panel.isKeyWindow))
+        let wasVisible = visibleAtMouseDown ?? (panel.isVisible)
         visibleAtMouseDown = nil
         if wasVisible { close() } else { show() }
     }
 
     func toggle() {
-        if panel.isVisible && (Prefs.panel == "auto" || panel.isKeyWindow) { close() } else { show() }
+        if panel.isVisible { close() } else { show() }
     }
 
     func close() { panel.orderOut(nil) }

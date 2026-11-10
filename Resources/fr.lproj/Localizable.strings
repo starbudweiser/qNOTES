@@ -140,7 +140,10 @@
 "set.panel.auto" = "Se ferme seul";
 "set.panel.front" = "Reste, devant";
 "set.panel.back" = "Reste, derrière";
-"set.panel.hint" = "« Se ferme seul » : le volet disparaît dès que vous cliquez ailleurs. Les deux autres le laissent affiché ; un clic sur l’icône le ramène au premier plan, un second le ferme (Échap aussi).";
+"set.panel.hint" = "« Se ferme seul » : le volet disparaît dès que vous cliquez ailleurs. Les deux autres le laissent affiché, devant ou derrière vos fenêtres ; un clic sur l’icône le ferme dans tous les cas (Échap aussi).";
+"set.tab.general" = "Général";
+"set.tab.writing" = "Écriture";
+"set.tab.data" = "Données";
 "set.stayontop" = "Toujours au premier plan";
 "set.translucent.reduced" = "Sans effet sur ce Mac : « Réduire la transparence » est activé (Réglages Système > Accessibilité > Affichage).";
 "set.backups.hint" = "Une sauvegarde par jour ; les 10 dernières sont conservées.";

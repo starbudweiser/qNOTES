@@ -4,6 +4,14 @@
 
 Bloc-notes personnel en texte enrichi pour macOS, inspiré de Tot (The Iconfactory), sans lien avec ses auteurs.
 
+## À propos
+
+qNOTES est réalisé par Starbudweiser & Claude Code (Anthropic). Fait partie du **DESKTOP MAC TOOLKIT**. Licence MIT, © 2026 Starbudweiser. Fourni en l'état, sans garantie. « À propos de qNOTES » est dans le menu de l'appli.
+
+## Configuration requise et installation
+
+macOS 14 ou plus récent, Apple Silicon. Téléchargez `qNOTES.zip` sur la page [Releases](https://github.com/starbudweiser/qNOTES/releases), décompressez-le et placez qNOTES.app dans le dossier Applications. L'appli est signée Developer ID et notarisée par Apple.
+
 ## Fonctions
 
 - **Notes illimitées en texte enrichi** : titres, gras, italique, souligné, barré, couleurs, alignement, listes à puces / numérotées / de tâches, liens. Les notes sont enregistrées en RTF avec un miroir en texte simple.

@@ -4,7 +4,11 @@
 
 ## About
 
-qNOTES is a personal rich-text notes app for macOS, inspired by Tot (The Iconfactory) and not affiliated with its authors. Written by Starbudweiser with Claude Code (Anthropic). MIT license, provided as is, without warranty.
+qNOTES is a personal rich-text notes app for macOS, inspired by Tot (The Iconfactory) and not affiliated with its authors. It is made by Starbudweiser & Claude Code (Anthropic). Part of the **DESKTOP MAC TOOLKIT**. MIT License, © 2026 Starbudweiser. Provided as is, without warranty. "About qNOTES" is in the app menu.
+
+## Requirements and installation
+
+macOS 14 or later, Apple Silicon. Download `qNOTES.zip` from the [Releases](https://github.com/starbudweiser/qNOTES/releases) page, unzip it and move qNOTES.app to your Applications folder. The app is signed with a Developer ID and notarized by Apple.
 
 ## Features
 
